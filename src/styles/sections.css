@@ -1,6 +1,8 @@
 .content-grid,
 .proof-section,
-.timeline-section {
+.timeline-section,
+.mezo-integration-section,
+.roadmap-section {
   width: min(100% - 48px, 88rem);
   margin: 0 auto;
 }
@@ -264,6 +266,142 @@
 .contract-callout p {
   margin: 5px 0 0;
   font-size: 15px;
+}
+
+.mezo-integration-section {
+  padding: 72px 0;
+}
+
+.mezo-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.mezo-card {
+  border-radius: 8px;
+  padding: 24px;
+  background: #faf9f5;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.mezo-card__icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #111;
+  color: #f2b84b;
+  margin-bottom: 16px;
+}
+
+.mezo-card h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.mezo-card p {
+  color: rgba(17, 17, 17, 0.64);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.mezo-card__data {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+  font-size: 13px;
+}
+
+.mezo-card__data span {
+  color: rgba(17, 17, 17, 0.55);
+}
+
+.mezo-card__data a {
+  color: #111;
+  font-weight: 600;
+}
+
+.trove-live-state {
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 24px;
+  background: #111;
+  color: #fff;
+}
+
+.trove-live-state h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.trove-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.trove-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trove-metrics span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trove-metrics strong {
+  font-size: 18px;
+  color: #f2b84b;
+}
+
+.roadmap-section {
+  padding: 48px 0 96px;
+}
+
+.roadmap-items {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.roadmap-item {
+  border-radius: 8px;
+  padding: 20px;
+  background: #faf9f5;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.roadmap-phase {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: #111;
+  color: #f2b84b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+.roadmap-item p {
+  color: rgba(17, 17, 17, 0.64);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
 }
 
 button:hover {

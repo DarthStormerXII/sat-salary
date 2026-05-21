@@ -14,7 +14,10 @@ export interface Treasury {
   liquidityMusd: number;
   healthRatio: number;
   riskBand: RiskBand;
-  realProofStatus: "fixture-active" | "local-contract-ready" | "mezo-testnet-pending";
+  realProofStatus:
+    | "fixture-active"
+    | "local-contract-ready"
+    | "mezo-testnet-pending";
 }
 
 export interface Worker {

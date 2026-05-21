@@ -27,8 +27,14 @@
     min-height: auto;
   }
 
-  .workers-grid {
+  .workers-grid,
+  .mezo-cards {
     grid-template-columns: 1fr;
+  }
+
+  .trove-metrics,
+  .roadmap-items {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -123,8 +129,15 @@
 
   .content-grid,
   .proof-section,
-  .timeline-section {
+  .timeline-section,
+  .mezo-integration-section,
+  .roadmap-section {
     width: min(100% - 28px, 88rem);
+  }
+
+  .trove-metrics,
+  .roadmap-items {
+    grid-template-columns: 1fr;
   }
 
   .content-grid {

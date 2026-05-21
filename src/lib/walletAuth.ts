@@ -1,7 +1,10 @@
 import { mezoTestnet } from "./mezo";
 
 export interface EthereumProvider {
-  request<T = unknown>(args: { method: string; params?: unknown[] | Record<string, unknown> }): Promise<T>;
+  request<T = unknown>(args: {
+    method: string;
+    params?: unknown[] | Record<string, unknown>;
+  }): Promise<T>;
 }
 
 declare global {
@@ -10,7 +13,12 @@ declare global {
   }
 }
 
-export type WalletAuthCode = "no-wallet" | "no-account" | "wrong-network" | "signature-rejected" | "provider-error";
+export type WalletAuthCode =
+  | "no-wallet"
+  | "no-account"
+  | "wrong-network"
+  | "signature-rejected"
+  | "provider-error";
 
 export class WalletAuthError extends Error {
   code: WalletAuthCode;
@@ -34,8 +42,15 @@ function mezoChainHex(): `0x${string}` {
 }
 
 function normalizeAccount(accounts: unknown): string {
-  if (!Array.isArray(accounts) || typeof accounts[0] !== "string" || accounts[0].length === 0) {
-    throw new WalletAuthError("no-account", "Wallet did not return an account.");
+  if (
+    !Array.isArray(accounts) ||
+    typeof accounts[0] !== "string" ||
+    accounts[0].length === 0
+  ) {
+    throw new WalletAuthError(
+      "no-account",
+      "Wallet did not return an account.",
+    );
   }
 
   return accounts[0];
@@ -55,7 +70,10 @@ async function ensureMezoTestnet(provider: EthereumProvider): Promise<number> {
   } catch (switchError) {
     const error = switchError as { code?: number };
     if (error.code !== 4902) {
-      throw new WalletAuthError("wrong-network", "Wallet is not connected to Mezo Testnet.");
+      throw new WalletAuthError(
+        "wrong-network",
+        "Wallet is not connected to Mezo Testnet.",
+      );
     }
 
     await provider.request({
@@ -72,10 +90,15 @@ async function ensureMezoTestnet(provider: EthereumProvider): Promise<number> {
     });
   }
 
-  const nextChainHex = await provider.request<string>({ method: "eth_chainId" });
+  const nextChainHex = await provider.request<string>({
+    method: "eth_chainId",
+  });
   const nextChainId = Number.parseInt(nextChainHex, 16);
   if (nextChainId !== mezoTestnet.id) {
-    throw new WalletAuthError("wrong-network", "Wallet switch did not land on Mezo Testnet.");
+    throw new WalletAuthError(
+      "wrong-network",
+      "Wallet switch did not land on Mezo Testnet.",
+    );
   }
 
   return nextChainId;
@@ -90,8 +113,11 @@ export function buildAuthMessage(account: string): string {
   ].join("\n");
 }
 
-export async function connectAndSignWallet(provider?: EthereumProvider): Promise<WalletAuthProof> {
-  const walletProvider = provider ?? (typeof window !== "undefined" ? window.ethereum : undefined);
+export async function connectAndSignWallet(
+  provider?: EthereumProvider,
+): Promise<WalletAuthProof> {
+  const walletProvider =
+    provider ?? (typeof window !== "undefined" ? window.ethereum : undefined);
 
   if (!walletProvider) {
     throw new WalletAuthError(
@@ -101,7 +127,9 @@ export async function connectAndSignWallet(provider?: EthereumProvider): Promise
   }
 
   try {
-    const account = normalizeAccount(await walletProvider.request({ method: "eth_requestAccounts" }));
+    const account = normalizeAccount(
+      await walletProvider.request({ method: "eth_requestAccounts" }),
+    );
     const chainId = await ensureMezoTestnet(walletProvider);
     const message = buildAuthMessage(account);
     const signature = await walletProvider.request<string>({
@@ -110,7 +138,10 @@ export async function connectAndSignWallet(provider?: EthereumProvider): Promise
     });
 
     if (!signature) {
-      throw new WalletAuthError("signature-rejected", "Wallet did not return a signature.");
+      throw new WalletAuthError(
+        "signature-rejected",
+        "Wallet did not return a signature.",
+      );
     }
 
     return { account, chainId, message, signature };
@@ -119,9 +150,15 @@ export async function connectAndSignWallet(provider?: EthereumProvider): Promise
 
     const providerError = error as { code?: number; message?: string };
     if (providerError.code === 4001) {
-      throw new WalletAuthError("signature-rejected", "Wallet request was rejected.");
+      throw new WalletAuthError(
+        "signature-rejected",
+        "Wallet request was rejected.",
+      );
     }
 
-    throw new WalletAuthError("provider-error", providerError.message ?? "Wallet provider request failed.");
+    throw new WalletAuthError(
+      "provider-error",
+      providerError.message ?? "Wallet provider request failed.",
+    );
   }
 }

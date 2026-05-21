@@ -7,8 +7,11 @@ import {
   Gauge,
   Landmark,
   RefreshCcw,
+  Shield,
   ShieldCheck,
+  TrendingDown,
   WalletCards,
+  Zap,
 } from "lucide-react";
 import {
   WalletAuthPanel,
@@ -18,11 +21,16 @@ import { WorkerCard } from "./components/WorkerCard";
 import { initialDemoState } from "./lib/demoState";
 import { formatMusd, formatUsd } from "./lib/format";
 import {
+  MEZO_CONTRACTS,
   MUSD_TOKEN,
+  SAT_SALARY_TROVE,
   SAT_SALARY_VAULT,
   mezoTestnet,
+  fetchBtcPrice,
+  fetchTroveState,
   probeMezoRpc,
   type RpcStatus,
+  type TroveState,
 } from "./lib/mezo";
 import { demoReducer, totalStreamingPerHour } from "./lib/simulation";
 import type { ProofType } from "./types";
@@ -33,6 +41,18 @@ const proofLabels: Record<ProofType, string> = {
   "mezo-testnet": "Mezo testnet",
 };
 
+function formatBtcPrice(price: bigint): string {
+  const usd = Number(price / 10n ** 18n);
+  return `$${usd.toLocaleString()}`;
+}
+
+function formatEther(val: bigint, decimals = 4): string {
+  const whole = val / 10n ** 18n;
+  const frac = val % 10n ** 18n;
+  const fracStr = frac.toString().padStart(18, "0").slice(0, decimals);
+  return `${whole}.${fracStr}`;
+}
+
 export default function App() {
   const [state, dispatch] = useReducer(demoReducer, initialDemoState);
   const [rpcStatus, setRpcStatus] = useState<RpcStatus | null>(null);
@@ -40,6 +60,8 @@ export default function App() {
   const [walletAuth, setWalletAuth] = useState<WalletAuthState>({
     status: "idle",
   });
+  const [btcPrice, setBtcPrice] = useState<bigint | null>(null);
+  const [troveState, setTroveState] = useState<TroveState | null>(null);
   const streamingPerHour = useMemo(
     () => totalStreamingPerHour(state.workers),
     [state.workers],
@@ -49,7 +71,16 @@ export default function App() {
     const interval = window.setInterval(() => {
       dispatch({ type: "tick", seconds: 5 });
     }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
+  useEffect(() => {
+    fetchBtcPrice().then(setBtcPrice);
+    fetchTroveState().then(setTroveState);
+    const interval = window.setInterval(() => {
+      fetchBtcPrice().then(setBtcPrice);
+      fetchTroveState().then(setTroveState);
+    }, 30000);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -59,6 +90,8 @@ export default function App() {
     setRpcStatus(result);
     setRpcLoading(false);
   }
+
+  const liveBtcUsd = btcPrice ? Number(btcPrice / 10n ** 18n) : null;
 
   return (
     <main>
@@ -72,8 +105,8 @@ export default function App() {
           </div>
           <div className="nav-links" aria-label="Product sections">
             <a href="#streams">Streams</a>
+            <a href="#mezo">Mezo</a>
             <a href="#proof">Proof</a>
-            <a href="#contracts">Contracts</a>
           </div>
           <button
             className="nav-button"
@@ -97,12 +130,13 @@ export default function App() {
             <div className="flow-line flow-line--two" />
           </div>
           <div className="hero-copy">
-            <p className="eyebrow">Bank on Bitcoin / MUSD track</p>
-            <h1>Your BTC pays payroll without selling a sat.</h1>
+            <p className="eyebrow">Bank on Bitcoin — Payroll on Mezo</p>
+            <h1>Stream payroll in MUSD without selling a sat.</h1>
             <p>
-              Sat Salary turns retained BTC collateral into visible MUSD
-              liquidity, starts worker payroll streams, and keeps repayment risk
-              in front of the operator.
+              Post BTC collateral, borrow MUSD at 1% fixed rate via Mezo's
+              protocol, and stream it in real time to employees. Auto-rebalance
+              protects against liquidation. Payroll costs less than wire
+              transfers.
             </p>
             <div className="hero-actions">
               <button
@@ -125,23 +159,25 @@ export default function App() {
                 Repay 2,400 MUSD
               </button>
             </div>
-            <div className="brand-marquee" aria-label="Demo proof steps">
+            <div className="brand-marquee" aria-label="Mezo integration">
               <div className="marquee-track">
                 {[
-                  "BTC collateral retained",
-                  "MUSD credit line",
-                  "Payroll stream",
-                  "Pause control",
-                  "Repay risk",
+                  "BTC collateral → MUSD borrow",
+                  "1% fixed rate",
+                  "Payroll streams",
+                  "Auto-rebalance",
+                  "Mezo Earn yield",
+                  "Passport wallet",
                 ].map((item) => (
                   <span key={item}>{item}</span>
                 ))}
                 {[
-                  "BTC collateral retained",
-                  "MUSD credit line",
-                  "Payroll stream",
-                  "Pause control",
-                  "Repay risk",
+                  "BTC collateral → MUSD borrow",
+                  "1% fixed rate",
+                  "Payroll streams",
+                  "Auto-rebalance",
+                  "Mezo Earn yield",
+                  "Passport wallet",
                 ].map((item) => (
                   <span key={`${item}-loop`}>{item}</span>
                 ))}
@@ -164,7 +200,9 @@ export default function App() {
               <span>Retained collateral</span>
               <strong>{state.treasury.collateralBtc.toFixed(2)} BTC</strong>
               <em>
-                {formatUsd(state.treasury.collateralUsd)} at current demo spot
+                {liveBtcUsd
+                  ? `${formatUsd(state.treasury.collateralBtc * liveBtcUsd)} at live oracle`
+                  : `${formatUsd(state.treasury.collateralUsd)} at demo spot`}
               </em>
             </div>
             <div className="metrics-grid">
@@ -192,8 +230,9 @@ export default function App() {
             <div className="proof-strip">
               <ShieldCheck size={18} />
               <span>
-                UI data is demo fixture. SatSalaryVault deployed on Mezo
-                Testnet.
+                {btcPrice
+                  ? `BTC oracle: ${formatBtcPrice(btcPrice)} · SatSalaryTrove on Mezo Testnet`
+                  : "Loading BTC price from Mezo oracle..."}
               </span>
             </div>
           </div>
@@ -205,9 +244,9 @@ export default function App() {
           <p className="eyebrow">Operator flow</p>
           <h2>Collateral, streams, repayment.</h2>
           <p>
-            The judge-visible state transition is explicit: BTC collateral stays
-            on the balance sheet, MUSD payroll liquidity funds contractors, and
-            repayment lowers the risk band.
+            BTC collateral stays on the balance sheet. MUSD payroll liquidity
+            funds contractors via real-time streams. Repayment lowers the risk
+            band. Auto-rebalance triggers if BTC drops below 180% ratio.
           </p>
           <div className="action-stack">
             <button
@@ -215,6 +254,7 @@ export default function App() {
               type="button"
               onClick={() => dispatch({ type: "stress-btc", percentDrop: 18 })}
             >
+              <TrendingDown size={16} />
               Stress BTC -18%
             </button>
             <button
@@ -243,13 +283,125 @@ export default function App() {
         </div>
       </section>
 
+      <section className="mezo-integration-section" id="mezo">
+        <div className="section-copy">
+          <p className="eyebrow">Deep Mezo integration</p>
+          <h2>MUSD + Oracle + Earn + Auto-rebalance</h2>
+          <p>
+            Sat Salary integrates with Mezo's BorrowerOperations (Liquity-style
+            troves), PriceFeed oracle, and references Mezo Earn yield to offset
+            borrow cost.
+          </p>
+        </div>
+        <div className="mezo-cards">
+          <div className="mezo-card">
+            <div className="mezo-card__icon">
+              <BadgeDollarSign size={20} />
+            </div>
+            <h3>MUSD Borrowing</h3>
+            <p>
+              Open a trove with BTC collateral, borrow MUSD at 1-5% fixed rate.
+              Min 110% collateral ratio. Sat Salary maintains 150%+ buffer.
+            </p>
+            <div className="mezo-card__data">
+              <span>BorrowerOperations</span>
+              <a
+                href={`${mezoTestnet.blockExplorers.default.url}/address/${MEZO_CONTRACTS.borrowerOperations}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {MEZO_CONTRACTS.borrowerOperations.slice(0, 8)}…
+              </a>
+            </div>
+          </div>
+          <div className="mezo-card">
+            <div className="mezo-card__icon">
+              <Bitcoin size={20} />
+            </div>
+            <h3>BTC Price Oracle</h3>
+            <p>
+              Skip Connect precompile updates every block. Health factor
+              computed on-chain in real time for liquidation protection.
+            </p>
+            <div className="mezo-card__data">
+              <span>Live BTC/USD</span>
+              <strong>
+                {btcPrice ? formatBtcPrice(btcPrice) : "Loading..."}
+              </strong>
+            </div>
+          </div>
+          <div className="mezo-card">
+            <div className="mezo-card__icon">
+              <Zap size={20} />
+            </div>
+            <h3>Auto-Rebalance</h3>
+            <p>
+              If BTC drops and health factor falls below 180%, the contract
+              auto-repays debt from reserves to restore 250% target ratio. No
+              liquidation risk above 30% BTC drawdown.
+            </p>
+            <div className="mezo-card__data">
+              <span>Status</span>
+              <strong>
+                {troveState
+                  ? troveState.isRebalanceNeeded
+                    ? "⚠ Rebalance needed"
+                    : "Healthy"
+                  : "No active trove"}
+              </strong>
+            </div>
+          </div>
+          <div className="mezo-card">
+            <div className="mezo-card__icon">
+              <Shield size={20} />
+            </div>
+            <h3>Mezo Earn (Yield)</h3>
+            <p>
+              BTC collateral earns passive yield via Mezo Earn vaults (ve(3,3)
+              gauge system). Yield offsets borrow cost — net payroll funding
+              cost approaches zero.
+            </p>
+            <div className="mezo-card__data">
+              <span>Estimated APY</span>
+              <strong>2-5% on BTC</strong>
+            </div>
+          </div>
+        </div>
+        {troveState && troveState.collateral > 0n && (
+          <div className="trove-live-state">
+            <h3>Live Trove State (on-chain)</h3>
+            <div className="trove-metrics">
+              <div>
+                <span>Collateral</span>
+                <strong>{formatEther(troveState.collateral)} BTC</strong>
+              </div>
+              <div>
+                <span>Debt</span>
+                <strong>{formatEther(troveState.debt, 2)} MUSD</strong>
+              </div>
+              <div>
+                <span>Health Factor</span>
+                <strong>{formatEther(troveState.healthFactor, 2)}x</strong>
+              </div>
+              <div>
+                <span>Payroll Reserve</span>
+                <strong>
+                  {formatEther(troveState.payrollReserve, 2)} MUSD
+                </strong>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
       <section className="proof-section" id="proof">
         <div>
           <p className="eyebrow">Proof lane</p>
-          <h2>No hidden mocks.</h2>
+          <h2>Deployed on Mezo Testnet.</h2>
           <p>
-            Fixture data is marked as fixture. SatSalaryVault is deployed on
-            Mezo Testnet with verified contract proof.
+            Both SatSalaryVault (simple streams) and SatSalaryTrove (full MUSD
+            integration with BorrowerOperations, PriceFeed, and auto-rebalance)
+            are deployed and verified.
           </p>
         </div>
         <div className="proof-stack">
@@ -259,6 +411,19 @@ export default function App() {
               <span>Mezo network</span>
               <strong>
                 {mezoTestnet.name} / chain {mezoTestnet.id}
+              </strong>
+            </div>
+            <div className="proof-row">
+              <span>SatSalaryTrove</span>
+              <strong>
+                <a
+                  href={`${mezoTestnet.blockExplorers.default.url}/address/${SAT_SALARY_TROVE.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {SAT_SALARY_TROVE.address.slice(0, 6)}…
+                  {SAT_SALARY_TROVE.address.slice(-4)}
+                </a>
               </strong>
             </div>
             <div className="proof-row">
@@ -277,6 +442,12 @@ export default function App() {
             <div className="proof-row">
               <span>MUSD token</span>
               <strong>{MUSD_TOKEN.testnetAddressFromDocs}</strong>
+            </div>
+            <div className="proof-row">
+              <span>BTC oracle price</span>
+              <strong>
+                {btcPrice ? formatBtcPrice(btcPrice) : "Loading..."}
+              </strong>
             </div>
             <div className="proof-row">
               <span>RPC probe</span>
@@ -317,13 +488,38 @@ export default function App() {
         <div className="contract-callout">
           <Landmark size={22} />
           <div>
-            <strong>Local proof path</strong>
+            <strong>Mezo-native contract architecture</strong>
             <p>
-              <code>forge test</code> covers collateral recording, credit
-              opening, payroll funding, stream withdrawal, pause, resume, and
-              repayment against <code>SatSalaryVault</code> plus{" "}
-              <code>MockMUSD</code>.
+              SatSalaryTrove integrates BorrowerOperations (trove open/adjust),
+              PriceFeed (BTC/USD oracle), and auto-rebalance logic. Foundry
+              tests cover trove opening, stream creation, pause/resume, claim,
+              rebalance trigger, and collateral addition.
             </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="roadmap-section">
+        <div className="section-copy">
+          <p className="eyebrow">Mainnet roadmap</p>
+          <h2>From testnet to pilot.</h2>
+        </div>
+        <div className="roadmap-items">
+          <div className="roadmap-item">
+            <span className="roadmap-phase">Pilot</span>
+            <p>1 SMB streaming $10k-$100k/mo MUSD payroll</p>
+          </div>
+          <div className="roadmap-item">
+            <span className="roadmap-phase">KYB</span>
+            <p>Mezo Passport business-tier for employer verification</p>
+          </div>
+          <div className="roadmap-item">
+            <span className="roadmap-phase">Compliance</span>
+            <p>Per-employee MUSD receipts for tax reporting (1099)</p>
+          </div>
+          <div className="roadmap-item">
+            <span className="roadmap-phase">Mainnet</span>
+            <p>Q2 launch with first design-partner SMB</p>
           </div>
         </div>
       </section>

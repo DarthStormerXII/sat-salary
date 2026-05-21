@@ -13,7 +13,11 @@ export function WorkerCard({
 }) {
   const isStreaming = worker.streamStatus === "streaming";
   const isPaused = worker.streamStatus === "paused";
-  const buttonLabel = isPaused ? "Resume stream" : isStreaming ? "Pause stream" : "Start streams first";
+  const buttonLabel = isPaused
+    ? "Resume stream"
+    : isStreaming
+      ? "Pause stream"
+      : "Start streams first";
 
   return (
     <article className="worker-card" data-testid={`worker-${worker.id}`}>
@@ -23,10 +27,19 @@ export function WorkerCard({
           <h3>{worker.name}</h3>
           <span>{worker.role}</span>
         </div>
-        <span className={`status-chip status-chip--${worker.streamStatus}`}>{worker.streamStatus}</span>
+        <span className={`status-chip status-chip--${worker.streamStatus}`}>
+          {worker.streamStatus}
+        </span>
       </div>
-      <div className="stream-meter" aria-label={`${worker.name} payroll stream`}>
-        <div style={{ transform: `scaleX(${isStreaming ? 0.76 : isPaused ? 0.46 : 0.2})` }} />
+      <div
+        className="stream-meter"
+        aria-label={`${worker.name} payroll stream`}
+      >
+        <div
+          style={{
+            transform: `scaleX(${isStreaming ? 0.76 : isPaused ? 0.46 : 0.2})`,
+          }}
+        />
       </div>
       <div className="worker-stats">
         <div>
@@ -47,7 +60,11 @@ export function WorkerCard({
         type="button"
         onClick={isPaused ? onResume : onPause}
         disabled={!isStreaming && !isPaused}
-        title={!isStreaming && !isPaused ? "Use Start payroll streams before pausing worker streams." : undefined}
+        title={
+          !isStreaming && !isPaused
+            ? "Use Start payroll streams before pausing worker streams."
+            : undefined
+        }
       >
         {isPaused ? <CirclePlay size={18} /> : <CirclePause size={18} />}
         {buttonLabel}

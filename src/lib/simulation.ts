@@ -48,7 +48,10 @@ function accrueWorker(worker: Worker, seconds: number): Worker {
 function accruedPayroll(workers: Worker[], seconds: number): number {
   return workers.reduce(
     (total, worker) =>
-      total + (worker.streamStatus === "streaming" ? (worker.streamRateMusdPerHour / 3600) * seconds : 0),
+      total +
+      (worker.streamStatus === "streaming"
+        ? (worker.streamRateMusdPerHour / 3600) * seconds
+        : 0),
     0,
   );
 }
@@ -57,7 +60,13 @@ function recomputeHealth(state: DemoState): DemoState {
   const healthRatio =
     state.treasury.musdDebt <= 0
       ? 9.99
-      : Number((state.treasury.collateralUsd / state.treasury.musdDebt / 1.54).toFixed(2));
+      : Number(
+          (
+            state.treasury.collateralUsd /
+            state.treasury.musdDebt /
+            1.54
+          ).toFixed(2),
+        );
 
   return {
     ...state,
@@ -79,9 +88,14 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         simulatedSeconds: state.simulatedSeconds + action.seconds,
         treasury: {
           ...state.treasury,
-          liquidityMusd: Math.max(0, state.treasury.liquidityMusd - accruedMusd),
+          liquidityMusd: Math.max(
+            0,
+            state.treasury.liquidityMusd - accruedMusd,
+          ),
         },
-        workers: state.workers.map((worker) => accrueWorker(worker, action.seconds)),
+        workers: state.workers.map((worker) =>
+          accrueWorker(worker, action.seconds),
+        ),
       };
     }
     case "start-streams": {
@@ -90,10 +104,20 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         started: true,
         simulatedSeconds,
-        treasury: { ...state.treasury, realProofStatus: "local-contract-ready" },
-        workers: state.workers.map((worker) => ({ ...worker, streamStatus: "streaming" })),
+        treasury: {
+          ...state.treasury,
+          realProofStatus: "local-contract-ready",
+        },
+        workers: state.workers.map((worker) => ({
+          ...worker,
+          streamStatus: "streaming",
+        })),
         events: [
-          event("start", "Started two MUSD payroll streams from the treasury.", simulatedSeconds),
+          event(
+            "start",
+            "Started two MUSD payroll streams from the treasury.",
+            simulatedSeconds,
+          ),
           ...state.events,
         ],
       };
@@ -104,10 +128,16 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         simulatedSeconds,
         workers: state.workers.map((worker) =>
-          worker.id === action.workerId ? { ...worker, streamStatus: "paused" } : worker,
+          worker.id === action.workerId
+            ? { ...worker, streamStatus: "paused" }
+            : worker,
         ),
         events: [
-          event("pause", `Paused ${action.workerId} stream for operator review.`, simulatedSeconds),
+          event(
+            "pause",
+            `Paused ${action.workerId} stream for operator review.`,
+            simulatedSeconds,
+          ),
           ...state.events,
         ],
       };
@@ -118,10 +148,16 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         simulatedSeconds,
         workers: state.workers.map((worker) =>
-          worker.id === action.workerId ? { ...worker, streamStatus: "streaming" } : worker,
+          worker.id === action.workerId
+            ? { ...worker, streamStatus: "streaming" }
+            : worker,
         ),
         events: [
-          event("resume", `Resumed ${action.workerId} MUSD stream.`, simulatedSeconds),
+          event(
+            "resume",
+            `Resumed ${action.workerId} MUSD stream.`,
+            simulatedSeconds,
+          ),
           ...state.events,
         ],
       };
@@ -135,27 +171,43 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         treasury: {
           ...state.treasury,
           musdDebt: nextDebt,
-          liquidityMusd: Math.max(0, state.treasury.liquidityMusd - action.amount),
+          liquidityMusd: Math.max(
+            0,
+            state.treasury.liquidityMusd - action.amount,
+          ),
         },
         events: [
-          event("repay", `Repaid ${action.amount.toLocaleString()} MUSD and improved risk.`, simulatedSeconds),
+          event(
+            "repay",
+            `Repaid ${action.amount.toLocaleString()} MUSD and improved risk.`,
+            simulatedSeconds,
+          ),
           ...state.events,
         ],
       });
     }
     case "stress-btc": {
       const simulatedSeconds = state.simulatedSeconds + 1;
-      const collateralUsd = Math.round(state.treasury.collateralUsd * (1 - action.percentDrop / 100));
+      const collateralUsd = Math.round(
+        state.treasury.collateralUsd * (1 - action.percentDrop / 100),
+      );
       return recomputeHealth({
         ...state,
         simulatedSeconds,
         treasury: {
           ...state.treasury,
           collateralUsd,
-          btcSpotUsd: Math.round(state.treasury.btcSpotUsd * (1 - action.percentDrop / 100)),
+          btcSpotUsd: Math.round(
+            state.treasury.btcSpotUsd * (1 - action.percentDrop / 100),
+          ),
         },
         events: [
-          event("stress", `BTC stress test applied: ${action.percentDrop}% drawdown.`, simulatedSeconds, "risk"),
+          event(
+            "stress",
+            `BTC stress test applied: ${action.percentDrop}% drawdown.`,
+            simulatedSeconds,
+            "risk",
+          ),
           ...state.events,
         ],
       });
@@ -169,7 +221,9 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
 
 export function totalStreamingPerHour(workers: Worker[]): number {
   return workers.reduce(
-    (total, worker) => total + (worker.streamStatus === "streaming" ? worker.streamRateMusdPerHour : 0),
+    (total, worker) =>
+      total +
+      (worker.streamStatus === "streaming" ? worker.streamRateMusdPerHour : 0),
     0,
   );
 }
