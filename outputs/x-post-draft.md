@@ -8,16 +8,21 @@ Voice: Darth Stormer XII (bold, contrarian, BTC-native energy)
 
 Selling BTC to make payroll is a skill issue.
 
-Built Sat Salary for the @MezoNetwork hackathon — a BTC-collateral payroll control room where agencies keep their stack and stream MUSD to contractors.
+Built Sat Salary for the @MezoNetwork hackathon:
+→ Post BTC collateral
+→ Borrow MUSD at 1% fixed rate (Liquity-style trove)
+→ Stream payroll in real time
+→ Auto-rebalance if BTC dips — no liquidation sweats
 
-Your BTC stays on the balance sheet. Your team gets paid. No liquidation sweats.
+Deep Mezo integration: BorrowerOperations, PriceFeed oracle, TroveManager health factor, and Earn yield to offset borrow cost.
 
-SatSalaryVault deployed on Mezo Testnet.
+Your BTC stays. Your team gets paid. Math protects the collateral.
 
 Demo: https://sat-salary-mezo.vercel.app
 Code: https://github.com/DarthStormerXII/sat-salary
+Contract: https://explorer.test.mezo.org/address/0x12D2162F47AAAe1B0591e898648605daA186D644
 
-@encaboraETH #MezoHackathon #BitcoinFi #BTC
+@encaboraETH #MezoHackathon #BitcoinFi #MUSD
 
 ---
 

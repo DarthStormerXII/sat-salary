@@ -2,61 +2,59 @@
 
 ## Product
 
-**Sat Salary** lets a small agency preserve BTC exposure while paying contractors in MUSD from a BTC-backed treasury.
+**Sat Salary** — Stream payroll in MUSD without selling Bitcoin. Post BTC collateral, borrow MUSD at 1% fixed rate via Mezo troves, and stream it to employees with auto-rebalance protection.
 
-## README Spine
+## One-Line Pitch
 
-1. Problem: small Bitcoin-native agencies need payroll liquidity without selling BTC.
-2. Solution: open a BTC-backed MUSD payroll treasury, stream worker pay, and manage risk/repayment.
-3. Mezo fit: MUSD as payroll liquidity, BTC as retained collateral, Mezo Testnet deployment, Passport wallet target.
-4. Demo: start streams, pause one, repay debt, inspect proof.
-5. Honesty: fixture UI data is labeled; contract is deployed on Mezo Testnet.
+"Stream payroll in MUSD without selling Bitcoin. Companies post BTC collateral, mint MUSD at 1% fixed rate, and stream it in real time to Mezo-Passport-verified employees. 1% borrow rate means payroll funding costs less than wire transfers."
 
-## Demo Script
+## Demo Script (for video recording)
 
-1. "This agency has 1.20 BTC it refuses to sell."
-2. "Sat Salary converts that balance sheet into 18,000 MUSD of payroll liquidity."
-3. "Two contractors start receiving MUSD streams."
-4. "A project dispute pauses Rafael's stream while Lina continues."
-5. "The agency repays 2,400 MUSD and the risk band improves."
-6. "The proof panel links to the live SatSalaryVault on Mezo Testnet explorer."
+1. (10s) "Sat-Salary: payroll in MUSD, backed by Bitcoin, at 1% borrow rate."
+2. (15s) Show company dashboard — BTC collateral retained, MUSD debt, health factor, streaming rate. Point out live BTC price from Mezo PriceFeed oracle.
+3. (20s) Click "Start payroll streams" — two contractor streams begin accruing MUSD in real time.
+4. (15s) Pause Rafael's stream (dispute). Show Lina continues streaming. Resume after review.
+5. (20s) Click "Stress BTC -18%" — show health ratio dropping. Explain auto-rebalance triggers at 180% to restore 250% — no liquidation.
+6. (15s) Click "Repay 2,400 MUSD" — debt drops, risk band improves.
+7. (10s) Scroll to Mezo Integration section — show BorrowerOperations, oracle price, auto-rebalance status, Earn yield.
+8. (10s) Scroll to Proof section — show deployed contract addresses linked to Mezo Testnet explorer.
+9. (10s) "1% fixed rate. Auto-rebalance. Mezo Earn yield offsets borrow cost. Mainnet pilot planned Q2."
 
-## Video Script
+## Video Script (voiceover)
 
-"Bitcoin-native teams have a simple problem: payroll comes due before they want to sell BTC. Sat Salary turns a Mezo MUSD credit line into a payroll control room. The agency keeps its BTC exposure, starts contractor streams in MUSD, pauses a disputed stream, and repays debt when revenue arrives. SatSalaryVault is deployed on Mezo Testnet — the proof is on-chain."
+"Bitcoin-native teams have a simple problem: payroll comes due before they want to sell BTC. Sat Salary turns Mezo's MUSD credit line into a payroll control room. Post BTC collateral, borrow MUSD at 1% through BorrowerOperations, and stream it to contractors in real time. If Bitcoin drops, auto-rebalance triggers — repaying debt from reserves to keep the trove healthy. No liquidation risk above a 30% BTC drawdown. The borrow rate is 1%, Mezo Earn yields 2-5% on your BTC collateral — net cost is near zero. Cheaper than wire transfers."
 
 ## Judging Criteria Mapping
 
-- Mezo Integration: MUSD payroll, BTC collateral-retained state, deployed SatSalaryVault on Mezo Testnet, Passport target.
-- Technical Implementation: Solidity stream/treasury contracts, deterministic reducer, typed UI, Foundry + Vitest tests.
-- Business Viability: agencies and contractors with Bitcoin treasuries and recurring payroll obligations.
-- UX: first-screen collateral/payroll proof, visible stream controls, deployed contract explorer link.
-- Presentation: one clear state transition and one human operator story.
+- **Mezo Integration (30%):** MUSD borrowing via BorrowerOperations, live BTC oracle from PriceFeed, TroveManager health factor, auto-rebalance logic, Mezo Earn yield reference, Passport wallet target.
+- **Technical Implementation:** SatSalaryTrove + SatSalaryVault contracts, 12 Foundry tests, live oracle reads in frontend, typed simulation engine.
+- **Business Viability (30%):** Agencies and remote teams with BTC treasuries. 1% borrow minus 3% Earn = net negative payroll cost. Clear mainnet path with SMB pilot.
+- **UX:** First-screen BTC oracle price, health factor, streaming rate. Mezo integration section with contract links. Auto-rebalance status indicator.
+- **Presentation:** Clear state transitions, live oracle data, explorer-linked proof.
 
 ## Links
 
-- Repo URL: https://github.com/DarthStormerXII/sat-salary
-- App URL: https://sat-salary-mezo.vercel.app
-- Contract: https://explorer.test.mezo.org/address/0x48B051F3e565E394ED8522ac453d87b3Fa40ad62
-- Deploy Tx: https://explorer.test.mezo.org/tx/0x855bb686ec01b57b1e55f5c1bb10b850cbe7341115b72f27a432f4ca426a2822
-- Demo video URL: pending (Gabriel records).
-- Mezo docs: https://mezo.org/docs/developers/getting-started
-- Hackathon page: https://www.encodeclub.com/programmes/mezo-hackathon-building-bitcoins-future
+- Repo: https://github.com/DarthStormerXII/sat-salary
+- App: https://sat-salary-mezo.vercel.app
+- SatSalaryTrove: https://explorer.test.mezo.org/address/0x12D2162F47AAAe1B0591e898648605daA186D644
+- SatSalaryVault: https://explorer.test.mezo.org/address/0x48B051F3e565E394ED8522ac453d87b3Fa40ad62
+- Deploy Tx (Trove): https://explorer.test.mezo.org/tx/0x8d5f512e6f87e9ee851875bd0fa5975190681a2174153479f62e670aa48b5ed3
+- Demo video: pending (Gabriel records)
+- Hackathon: https://www.encodeclub.com/programmes/mezo-hackathon-building-bitcoins-future
 
 ## Final Checklist
 
-- [x] Required planning files written.
-- [x] App implemented.
-- [x] Contracts implemented.
-- [x] Unit/contract tests pass (Vitest 7/7, Foundry 4/4).
-- [x] SatSalaryVault deployed to Mezo Testnet.
-- [x] Frontend patched with deployed contract address.
-- [x] Primary submitter selected (Darth Stormer XII).
-- [x] Public repo created and pushed (DarthStormerXII/sat-salary).
-- [x] App deployed to Vercel (sat-salary-mezo.vercel.app).
-- [x] Encode Club prefill draft written.
-- [x] X post draft written.
-- [ ] Demo video recorded (Gabriel).
-- [ ] Encode Club account created for darthstormer.ai@gmail.com (Gabriel).
-- [ ] Submission portal draft prepared (after account creation).
-- [ ] Final submission (Gabriel).
+- [x] SatSalaryTrove integrates BorrowerOperations, TroveManager, PriceFeed, HintHelpers, SortedTroves
+- [x] Auto-rebalance logic deployed (repays debt when health < 180%)
+- [x] 12 Foundry tests passing (trove, streams, rebalance, oracle)
+- [x] Frontend reads live BTC price from Mezo PriceFeed oracle
+- [x] Mezo integration section in UI (MUSD, oracle, rebalance, Earn)
+- [x] Mainnet roadmap section
+- [x] Both contracts deployed to Mezo Testnet
+- [x] Public repo pushed (DarthStormerXII/sat-salary)
+- [x] App deployed to Vercel (sat-salary-mezo.vercel.app)
+- [x] Encode Club prefill draft with deep integration messaging
+- [x] X post draft with Mezo-native narrative
+- [ ] Demo video recorded (Gabriel)
+- [ ] Encode Club account created for darthstormer.ai@gmail.com (Gabriel)
+- [ ] Submission portal filled and submitted (Gabriel)
