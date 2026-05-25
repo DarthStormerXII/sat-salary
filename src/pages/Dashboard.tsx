@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowRight,
   BadgeDollarSign,
+  Bitcoin,
   Droplet,
   Gauge,
   LogOut,
@@ -96,11 +97,19 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
           </div>
           Sat Salary
         </div>
-        <div className="dash-wallet-pill">
-          <span className="dash-wallet-addr">{shortAddr(account)}</span>
-          <button className="dash-disconnect" onClick={onDisconnect}>
-            <LogOut size={12} /> Disconnect
-          </button>
+        <div className="dash-wallet-area">
+          {gasChecked && (
+            <div className="dash-balance-pill">
+              <Bitcoin size={14} />
+              <span>{formatBtcBalance(gasWei)} BTC</span>
+            </div>
+          )}
+          <div className="dash-wallet-pill">
+            <span className="dash-wallet-addr">{shortAddr(account)}</span>
+            <button className="dash-disconnect" onClick={onDisconnect}>
+              <LogOut size={12} /> Disconnect
+            </button>
+          </div>
         </div>
       </nav>
 
