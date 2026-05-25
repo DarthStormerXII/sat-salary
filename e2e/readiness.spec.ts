@@ -43,7 +43,7 @@ test("connect wallet opens the RainbowKit wallet modal", async ({ page }) => {
   await page.waitForTimeout(2000);
 
   await expect(page.getByText("Connect a Wallet")).toBeVisible();
-  await expect(page.getByText("WalletConnect")).toBeVisible();
+  await expect(page.getByText("OKX Wallet")).toBeVisible();
 });
 
 test("footer shows deployed contract links", async ({ page }) => {
