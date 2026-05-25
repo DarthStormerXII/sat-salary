@@ -31,10 +31,7 @@ export function WorkerCard({
           {worker.streamStatus}
         </span>
       </div>
-      <div
-        className="stream-meter"
-        aria-label={`${worker.name} payroll stream`}
-      >
+      <div className="stream-meter">
         <div
           style={{
             transform: `scaleX(${isStreaming ? 0.76 : isPaused ? 0.46 : 0.2})`,
@@ -52,11 +49,11 @@ export function WorkerCard({
         </div>
       </div>
       <div className="worker-wallet">
-        <WalletCards size={16} />
+        <WalletCards size={14} />
         <span>{worker.wallet}</span>
       </div>
       <button
-        className="ghost-button"
+        className="worker-action-btn"
         type="button"
         onClick={isPaused ? onResume : onPause}
         disabled={!isStreaming && !isPaused}
@@ -66,7 +63,7 @@ export function WorkerCard({
             : undefined
         }
       >
-        {isPaused ? <CirclePlay size={18} /> : <CirclePause size={18} />}
+        {isPaused ? <CirclePlay size={16} /> : <CirclePause size={16} />}
         {buttonLabel}
       </button>
     </article>

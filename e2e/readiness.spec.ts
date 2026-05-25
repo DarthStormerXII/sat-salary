@@ -1,34 +1,47 @@
 import { expect, test } from "@playwright/test";
 
-test("primary payroll happy path works locally", async ({ page }) => {
+test("landing page renders with oracle price and connect CTA", async ({
+  page,
+}) => {
   await page.goto("/");
+  await expect(page.getByText("Stream payroll in")).toBeVisible();
+  await expect(page.getByText("Connect Wallet").first()).toBeVisible();
 
-  await page.getByTestId("start-streams").click();
-  await expect(page.getByText("Started two MUSD payroll streams from the treasury.")).toBeVisible();
-
-  await page.getByTestId("worker-rafael").getByRole("button", { name: "Pause stream" }).click();
-  await expect(page.getByText("Paused rafael stream for operator review.")).toBeVisible();
-
-  await page.getByTestId("worker-rafael").getByRole("button", { name: "Resume stream" }).click();
-  await expect(page.getByText("Resumed rafael MUSD stream.")).toBeVisible();
-
-  await page.getByTestId("repay-musd").click();
-  await expect(page.getByText("Repaid 2,400 MUSD and improved risk.")).toBeVisible();
+  await page.waitForTimeout(4000);
+  await expect(page.getByText(/BTC Oracle: \$[\d,]+/)).toBeVisible();
 });
 
-test("wallet auth exposes a real blocked state when no wallet is installed", async ({ page }) => {
+test("landing page features and how-it-works sections render", async ({
+  page,
+}) => {
   await page.goto("/");
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  await page.waitForTimeout(1000);
 
-  await page.getByTestId("wallet-auth-button").click();
+  await expect(page.getByText("MUSD Borrowing")).toBeVisible();
+  await expect(page.getByText("Real-time Streams")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Auto-Rebalance" }),
+  ).toBeVisible();
 
-  await expect(page.getByTestId("wallet-auth-status")).toContainText("no-wallet");
-  await expect(page.getByTestId("wallet-auth-status")).toContainText("No EIP-1193 wallet was detected");
+  await page.evaluate(() => window.scrollTo(0, 2400));
+  await page.waitForTimeout(1000);
+
+  await expect(page.getByRole("heading", { name: "Post BTC" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Borrow MUSD" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Stream Payroll", exact: true }),
+  ).toBeVisible();
 });
 
-test("Mezo RPC proof uses the live testnet endpoint", async ({ page }) => {
+test("footer shows deployed contract links", async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(500);
 
-  await page.getByTestId("rpc-check").click();
-
-  await expect(page.getByText(/Live block [0-9]+/)).toBeVisible();
+  await expect(page.getByText("SatSalaryTrove")).toBeVisible();
+  await expect(page.getByText("SatSalaryVault")).toBeVisible();
+  await expect(page.getByText("Mezo Testnet").first()).toBeVisible();
 });

@@ -7,7 +7,11 @@
   overflow: hidden;
   border-radius: 16px;
   background:
-    radial-gradient(circle at 75% 30%, rgba(242, 184, 75, 0.22), transparent 28%),
+    radial-gradient(
+      circle at 75% 30%,
+      rgba(242, 184, 75, 0.22),
+      transparent 28%
+    ),
     linear-gradient(135deg, #f7f3e8 0%, #d6d9ce 54%, #b4bda9 100%);
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.72fr);
@@ -56,7 +60,12 @@
   width: 44%;
   height: 1px;
   right: 17%;
-  background: linear-gradient(90deg, transparent, rgba(17, 17, 17, 0.25), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(17, 17, 17, 0.25),
+    transparent
+  );
   animation: flow 7s linear infinite;
 }
 
