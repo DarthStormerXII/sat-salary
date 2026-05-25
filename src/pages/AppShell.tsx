@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Bitcoin,
-  Briefcase,
   Droplet,
   LayoutDashboard,
   LogOut,
@@ -10,19 +9,21 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useBitcoinAccount } from "@mezo-org/passport";
 import { RealFlowPanel } from "../components/RealFlowPanel";
 import { ActivityFeed } from "../components/ActivityFeed";
+import {
+  OnboardingFlow,
+  type UserProfile,
+} from "../components/app/OnboardingFlow";
 import { SAT_SALARY_OWNER } from "../lib/satSalary";
 
-type Role = "employer" | "employee";
 type Tab = "dashboard" | "team" | "earnings" | "activity";
 
 const FAUCET_URL = "https://faucet.test.mezo.org/";
 const MIN_GAS_WEI = 100_000_000_000_000n;
-const ROLE_STORAGE_KEY = "sat-salary-role";
+const PROFILE_STORAGE_KEY = "sat-salary-profile";
 
 function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
@@ -34,109 +35,23 @@ function formatBtcBalance(wei: bigint): string {
   return `${whole}.${frac}`;
 }
 
-function getSavedRole(address: string): Role | null {
+function loadProfile(address: string): UserProfile | null {
   try {
-    const saved = localStorage.getItem(
-      `${ROLE_STORAGE_KEY}-${address.toLowerCase()}`,
+    const raw = localStorage.getItem(
+      `${PROFILE_STORAGE_KEY}-${address.toLowerCase()}`,
     );
-    if (saved === "employer" || saved === "employee") return saved;
+    if (raw) return JSON.parse(raw) as UserProfile;
   } catch {}
   return null;
 }
 
-function saveRole(address: string, role: Role) {
+function saveProfile(address: string, profile: UserProfile) {
   try {
-    localStorage.setItem(`${ROLE_STORAGE_KEY}-${address.toLowerCase()}`, role);
+    localStorage.setItem(
+      `${PROFILE_STORAGE_KEY}-${address.toLowerCase()}`,
+      JSON.stringify(profile),
+    );
   } catch {}
-}
-
-const HERO_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260306_074215_04640ca7-042c-45d6-bb56-58b1e8a42489.mp4";
-
-function Onboarding({ onSelect }: { onSelect: (role: Role) => void }) {
-  return (
-    <div className="onboarding">
-      {/* Video background — same as landing hero */}
-      <div className="onboarding__video-wrap">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="onboarding__video"
-        >
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
-      </div>
-      <div className="onboarding__blur-mask" />
-      <div className="onboarding__center-blob" />
-      <div className="onboarding__grain" />
-
-      <motion.div
-        className="onboarding__card"
-        initial={{ opacity: 0, filter: "blur(16px)", y: 30 }}
-        animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="onboarding__brand">
-          <img
-            src="/logo-mark.png"
-            alt="Sat Salary"
-            className="onboarding__logo"
-          />
-          <span>Sat Salary</span>
-        </div>
-
-        <h2>Welcome to Sat Salary</h2>
-        <p className="onboarding__sub">
-          Stream payroll in MUSD without selling a sat.
-          <br />
-          How will you use Sat Salary?
-        </p>
-
-        <div className="onboarding__choices">
-          <motion.button
-            className="onboarding__choice"
-            onClick={() => onSelect("employer")}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="onboarding__icon">
-              <Briefcase size={24} />
-            </div>
-            <h3>I'm an Employer</h3>
-            <p>
-              Post BTC collateral, borrow MUSD, and stream payroll to your team.
-            </p>
-          </motion.button>
-
-          <motion.button
-            className="onboarding__choice"
-            onClick={() => onSelect("employee")}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.5 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="onboarding__icon">
-              <Wallet size={24} />
-            </div>
-            <h3>I'm an Employee</h3>
-            <p>
-              View your salary streams and claim accrued MUSD earnings anytime.
-            </p>
-          </motion.button>
-        </div>
-
-        <p className="onboarding__mezo-badge">Powered by Mezo · Chain 31611</p>
-      </motion.div>
-    </div>
-  );
 }
 
 export function AppShell() {
@@ -154,27 +69,37 @@ export function AppShell() {
   const gasChecked = !balanceLoading && balance !== undefined;
   const insufficientGas = gasChecked && gasWei < MIN_GAS_WEI;
 
-  const [role, setRole] = useState<Role | null>(() => {
-    if (isOwner) return "employer";
-    if (address) return getSavedRole(address);
-    return null;
-  });
+  const [profile, setProfile] = useState<UserProfile | null>(() =>
+    address ? loadProfile(address) : null,
+  );
 
   useEffect(() => {
-    if (isOwner && role !== "employer") setRole("employer");
-  }, [isOwner, role]);
+    if (address && !profile) {
+      const saved = loadProfile(address);
+      if (saved) setProfile(saved);
+    }
+  }, [address, profile]);
 
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
-  function handleRoleSelect(r: Role) {
-    setRole(r);
-    if (address) saveRole(address, r);
+  function handleOnboardingComplete(p: UserProfile) {
+    setProfile(p);
+    if (address) saveProfile(address, p);
     setActiveTab("dashboard");
   }
 
-  if (!role) {
-    return <Onboarding onSelect={handleRoleSelect} />;
+  if (!profile) {
+    return (
+      <OnboardingFlow
+        walletAddress={address ?? "0x"}
+        onComplete={handleOnboardingComplete}
+      />
+    );
   }
+
+  const role = profile.role;
+  const displayName =
+    profile.role === "employer" ? profile.orgName : profile.personName;
 
   const employerTabs: { id: Tab; label: string; icon: typeof Bitcoin }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -203,8 +128,11 @@ export function AppShell() {
             <span>Sat Salary</span>
           </div>
 
-          <div className="app-sidebar__role">
-            {role === "employer" ? "Employer" : "Employee"}
+          <div className="app-sidebar__profile">
+            <span className="app-sidebar__name">{displayName}</span>
+            <span className="app-sidebar__role-badge">
+              {role === "employer" ? "Employer" : "Employee"}
+            </span>
           </div>
 
           <nav className="app-sidebar__nav">
@@ -274,11 +202,8 @@ export function AppShell() {
         )}
 
         {activeTab === "dashboard" && <RealFlowPanel view="dashboard" />}
-
         {activeTab === "team" && <RealFlowPanel view="team" />}
-
         {activeTab === "earnings" && <RealFlowPanel view="earnings" />}
-
         {activeTab === "activity" && <ActivityFeed />}
       </main>
     </div>
