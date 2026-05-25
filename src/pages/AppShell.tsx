@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Bitcoin,
+  Briefcase,
   Droplet,
   LayoutDashboard,
   LogOut,
@@ -9,16 +10,19 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useBitcoinAccount } from "@mezo-org/passport";
 import { RealFlowPanel } from "../components/RealFlowPanel";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { SAT_SALARY_OWNER } from "../lib/satSalary";
 
-type Tab = "treasury" | "team" | "earnings" | "activity";
+type Role = "employer" | "employee";
+type Tab = "dashboard" | "team" | "earnings" | "activity";
 
 const FAUCET_URL = "https://faucet.test.mezo.org/";
 const MIN_GAS_WEI = 100_000_000_000_000n;
+const ROLE_STORAGE_KEY = "sat-salary-role";
 
 function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
@@ -28,6 +32,66 @@ function formatBtcBalance(wei: bigint): string {
   const whole = wei / 10n ** 18n;
   const frac = (wei % 10n ** 18n).toString().padStart(18, "0").slice(0, 6);
   return `${whole}.${frac}`;
+}
+
+function getSavedRole(address: string): Role | null {
+  try {
+    const saved = localStorage.getItem(
+      `${ROLE_STORAGE_KEY}-${address.toLowerCase()}`,
+    );
+    if (saved === "employer" || saved === "employee") return saved;
+  } catch {}
+  return null;
+}
+
+function saveRole(address: string, role: Role) {
+  try {
+    localStorage.setItem(`${ROLE_STORAGE_KEY}-${address.toLowerCase()}`, role);
+  } catch {}
+}
+
+function Onboarding({ onSelect }: { onSelect: (role: Role) => void }) {
+  return (
+    <div className="onboarding">
+      <motion.div
+        className="onboarding__card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2>Welcome to Sat Salary</h2>
+        <p>How will you use Sat Salary on Mezo?</p>
+
+        <div className="onboarding__choices">
+          <button
+            className="onboarding__choice"
+            onClick={() => onSelect("employer")}
+          >
+            <div className="onboarding__icon">
+              <Briefcase size={24} />
+            </div>
+            <h3>I'm an Employer</h3>
+            <p>
+              Post BTC collateral, borrow MUSD, and stream payroll to your team.
+            </p>
+          </button>
+
+          <button
+            className="onboarding__choice"
+            onClick={() => onSelect("employee")}
+          >
+            <div className="onboarding__icon">
+              <Wallet size={24} />
+            </div>
+            <h3>I'm an Employee</h3>
+            <p>
+              View your salary streams and claim accrued MUSD earnings anytime.
+            </p>
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
 export function AppShell() {
@@ -45,25 +109,44 @@ export function AppShell() {
   const gasChecked = !balanceLoading && balance !== undefined;
   const insufficientGas = gasChecked && gasWei < MIN_GAS_WEI;
 
-  const defaultTab: Tab = isOwner ? "treasury" : "earnings";
-  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+  const [role, setRole] = useState<Role | null>(() => {
+    if (isOwner) return "employer";
+    if (address) return getSavedRole(address);
+    return null;
+  });
+
+  useEffect(() => {
+    if (isOwner && role !== "employer") setRole("employer");
+  }, [isOwner, role]);
+
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+
+  function handleRoleSelect(r: Role) {
+    setRole(r);
+    if (address) saveRole(address, r);
+    setActiveTab("dashboard");
+  }
+
+  if (!role) {
+    return <Onboarding onSelect={handleRoleSelect} />;
+  }
 
   const employerTabs: { id: Tab; label: string; icon: typeof Bitcoin }[] = [
-    { id: "treasury", label: "Treasury", icon: LayoutDashboard },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "team", label: "Team", icon: Users },
     { id: "activity", label: "Activity", icon: ActivityIcon },
   ];
 
   const employeeTabs: { id: Tab; label: string; icon: typeof Bitcoin }[] = [
-    { id: "earnings", label: "Earnings", icon: Wallet },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "earnings", label: "My Earnings", icon: Wallet },
     { id: "activity", label: "Activity", icon: ActivityIcon },
   ];
 
-  const tabs = isOwner ? employerTabs : employeeTabs;
+  const tabs = role === "employer" ? employerTabs : employeeTabs;
 
   return (
     <div className="app-shell">
-      {/* Sidebar */}
       <aside className="app-sidebar">
         <div className="app-sidebar__top">
           <div className="app-sidebar__brand">
@@ -76,7 +159,7 @@ export function AppShell() {
           </div>
 
           <div className="app-sidebar__role">
-            {isOwner ? "Employer" : "Employee"}
+            {role === "employer" ? "Employer" : "Employee"}
           </div>
 
           <nav className="app-sidebar__nav">
@@ -120,7 +203,6 @@ export function AppShell() {
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="app-content">
         {insufficientGas && (
           <div className="dash-faucet-banner">
@@ -146,9 +228,11 @@ export function AppShell() {
           </div>
         )}
 
-        {(activeTab === "treasury" ||
-          activeTab === "team" ||
-          activeTab === "earnings") && <RealFlowPanel view={activeTab} />}
+        {activeTab === "dashboard" && <RealFlowPanel view="dashboard" />}
+
+        {activeTab === "team" && <RealFlowPanel view="team" />}
+
+        {activeTab === "earnings" && <RealFlowPanel view="earnings" />}
 
         {activeTab === "activity" && <ActivityFeed />}
       </main>

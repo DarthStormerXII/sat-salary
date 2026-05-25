@@ -47,10 +47,10 @@ interface StreamRow {
 }
 
 interface RealFlowPanelProps {
-  view?: "treasury" | "team" | "earnings";
+  view?: "dashboard" | "treasury" | "team" | "earnings";
 }
 
-export function RealFlowPanel({ view = "treasury" }: RealFlowPanelProps) {
+export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
   const { address } = useAccount();
   const isOwner =
     !!address && address.toLowerCase() === SAT_SALARY_OWNER.toLowerCase();
@@ -230,21 +230,25 @@ export function RealFlowPanel({ view = "treasury" }: RealFlowPanelProps) {
   // Net payroll funding cost = borrow rate − Mezo Earn (mainnet Savings Vault) APR.
   const netCostBps = borrowBps !== null ? borrowBps - MEZO_EARN_APR_BPS : null;
 
-  const showTreasury = view === "treasury";
-  const showTeam = view === "team" || view === "earnings";
+  const showTreasury = view === "dashboard" || view === "treasury";
+  const showStreams =
+    view === "dashboard" || view === "team" || view === "earnings";
+  const showOwnerControls = view === "team";
+  const showOnlyMine = view === "earnings";
+
+  const headings: Record<string, string> = {
+    dashboard: "Payroll Overview",
+    treasury: "Treasury",
+    team: "Team Management",
+    earnings: "My Earnings",
+  };
 
   return (
     <section className="real-flow">
       <div className="real-flow__header">
         <div>
           <p className="eyebrow">Live on Mezo Testnet</p>
-          <h3>
-            {showTreasury
-              ? "Treasury"
-              : showTeam
-                ? "Payroll streams"
-                : "Real payroll trove"}
-          </h3>
+          <h3>{headings[view] ?? "Overview"}</h3>
         </div>
         <a
           className="real-flow__contract"
@@ -351,110 +355,123 @@ export function RealFlowPanel({ view = "treasury" }: RealFlowPanelProps) {
         </>
       )}
 
-      {showTeam && (
-        <>
-          {/* Streams */}
-          <div className="real-flow__streams">
-            <h4>
-              Payroll streams{" "}
-              <span>
-                {streams.length} active · {(ratePerSec * 3600).toFixed(2)}/hr ·{" "}
-                {(ratePerSec * 86400).toFixed(1)}/day ·{" "}
-                {(ratePerSec * 2592000).toFixed(0)} MUSD/mo
-              </span>
-            </h4>
-            {streams.length === 0 && (
-              <p className="real-flow__empty">
-                No streams yet.{" "}
-                {isOwner
-                  ? "Create one below."
-                  : "The employer hasn't created your stream yet."}
-              </p>
-            )}
-            {streams.map((s) => {
-              const mine =
-                !!address && s.payee.toLowerCase() === address.toLowerCase();
-              return (
-                <div
-                  key={s.id}
-                  className={`real-flow__stream ${mine ? "is-mine" : ""}`}
-                >
-                  <div>
-                    <span className="real-flow__payee">
-                      {s.payee.slice(0, 6)}…{s.payee.slice(-4)}
-                      {mine && <em> (you)</em>}
-                    </span>
-                    <span className="real-flow__rate">
-                      {fmt(s.ratePerSecond * BigInt(SECONDS_PER_MONTH), 0)}{" "}
-                      MUSD/mo
-                      {s.paused && " · paused"}
-                    </span>
-                  </div>
-                  <div className="real-flow__claimable">
-                    <span>{fmt(s.pending, 2)} MUSD</span>
-                    {mine && (
-                      <button
-                        className="action-btn action-btn--primary"
-                        onClick={() => claim(s.id)}
-                        disabled={s.pending === 0n}
-                      >
-                        <Wallet size={14} /> Claim
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {showStreams &&
+        (() => {
+          const displayStreams = showOnlyMine
+            ? streams.filter(
+                (s) =>
+                  !!address && s.payee.toLowerCase() === address.toLowerCase(),
+              )
+            : streams;
+          const myStreamCount = streams.filter(
+            (s) => !!address && s.payee.toLowerCase() === address.toLowerCase(),
+          ).length;
 
-          {/* Owner controls */}
-          {isOwner && (
-            <div className="real-flow__owner">
-              <h4>Employer controls</h4>
-              <div className="real-flow__form">
-                <input
-                  type="text"
-                  inputMode="text"
-                  placeholder="Employee wallet 0x…"
-                  value={payee}
-                  onChange={(e) => setPayee(e.target.value.trim())}
-                />
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="MUSD / month"
-                  value={monthly}
-                  onChange={(e) =>
-                    setMonthly(e.target.value.replace(/[^0-9.]/g, ""))
-                  }
-                />
-                <button
-                  className="action-btn action-btn--primary"
-                  onClick={createStream}
-                >
-                  <Plus size={14} /> Create stream
-                </button>
+          return (
+            <>
+              {/* Streams */}
+              <div className="real-flow__streams">
+                <h4>
+                  {showOnlyMine ? "Your salary streams" : "All payroll streams"}{" "}
+                  <span>
+                    {showOnlyMine
+                      ? `${displayStreams.length} stream${displayStreams.length !== 1 ? "s" : ""}`
+                      : `${streams.length} active · ${(ratePerSec * 3600).toFixed(2)}/hr · ${(ratePerSec * 2592000).toFixed(0)} MUSD/mo`}
+                  </span>
+                </h4>
+                {displayStreams.length === 0 && (
+                  <p className="real-flow__empty">
+                    {showOnlyMine
+                      ? "No salary streams for your wallet yet. Share your address with your employer to get added."
+                      : isOwner
+                        ? "No streams yet. Create one below."
+                        : "No active streams on this trove yet."}
+                  </p>
+                )}
+                {displayStreams.map((s) => {
+                  const mine =
+                    !!address &&
+                    s.payee.toLowerCase() === address.toLowerCase();
+                  return (
+                    <div
+                      key={s.id}
+                      className={`real-flow__stream ${mine ? "is-mine" : ""}`}
+                    >
+                      <div>
+                        <span className="real-flow__payee">
+                          {s.payee.slice(0, 6)}…{s.payee.slice(-4)}
+                          {mine && <em> (you)</em>}
+                        </span>
+                        <span className="real-flow__rate">
+                          {fmt(s.ratePerSecond * BigInt(SECONDS_PER_MONTH), 0)}{" "}
+                          MUSD/mo
+                          {s.paused && " · paused"}
+                        </span>
+                      </div>
+                      <div className="real-flow__claimable">
+                        <span>{fmt(s.pending, 2)} MUSD</span>
+                        {mine && (
+                          <button
+                            className="action-btn action-btn--primary"
+                            onClick={() => claim(s.id)}
+                            disabled={s.pending === 0n}
+                          >
+                            <Wallet size={14} /> Claim
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="real-flow__form">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder={`Allocate MUSD (buffer ${fmt(unallocated, 0)})`}
-                  value={alloc}
-                  onChange={(e) =>
-                    setAlloc(e.target.value.replace(/[^0-9.]/g, ""))
-                  }
-                />
-                <button
-                  className="action-btn action-btn--secondary"
-                  onClick={allocate}
-                >
-                  <Coins size={14} /> Allocate to payroll
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+            </>
+          );
+        })()}
+
+      {/* Owner controls */}
+      {showOwnerControls && isOwner && (
+        <div className="real-flow__owner">
+          <h4>Employer controls</h4>
+          <div className="real-flow__form">
+            <input
+              type="text"
+              inputMode="text"
+              placeholder="Employee wallet 0x…"
+              value={payee}
+              onChange={(e) => setPayee(e.target.value.trim())}
+            />
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="MUSD / month"
+              value={monthly}
+              onChange={(e) =>
+                setMonthly(e.target.value.replace(/[^0-9.]/g, ""))
+              }
+            />
+            <button
+              className="action-btn action-btn--primary"
+              onClick={createStream}
+            >
+              <Plus size={14} /> Create stream
+            </button>
+          </div>
+          <div className="real-flow__form">
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder={`Allocate MUSD (buffer ${fmt(unallocated, 0)})`}
+              value={alloc}
+              onChange={(e) => setAlloc(e.target.value.replace(/[^0-9.]/g, ""))}
+            />
+            <button
+              className="action-btn action-btn--secondary"
+              onClick={allocate}
+            >
+              <Coins size={14} /> Allocate to payroll
+            </button>
+          </div>
+        </div>
       )}
 
       <TxStepsDialog
