@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Bitcoin } from "lucide-react";
 import { LandingHero } from "../components/landing/LandingHero";
 import { LandingFeatures } from "../components/landing/LandingFeatures";
 import { LandingHowItWorks } from "../components/landing/LandingHowItWorks";
@@ -41,7 +40,7 @@ export function LandingPage({
       <nav className={`landing-nav ${scrolled ? "landing-nav--scrolled" : ""}`}>
         <div className="landing-brand">
           <div className="landing-brand-mark">
-            <Bitcoin size={16} />
+            <img src="/logo-mark.png" alt="Sat Salary logo" />
           </div>
           Sat Salary
         </div>

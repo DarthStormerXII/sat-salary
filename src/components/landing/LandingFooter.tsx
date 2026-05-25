@@ -1,4 +1,3 @@
-import { Bitcoin } from "lucide-react";
 import {
   SAT_SALARY_TROVE,
   SAT_SALARY_VAULT,
@@ -12,7 +11,11 @@ export function LandingFooter() {
     <footer className="landing-footer">
       <div className="landing-footer-inner">
         <div className="footer-brand">
-          <Bitcoin size={16} />
+          <img
+            src="/logo-mark.png"
+            alt="Sat Salary logo"
+            className="footer-logo"
+          />
           <span>Sat Salary</span>
           <span className="footer-chain-badge">
             <span className="footer-chain-dot" />

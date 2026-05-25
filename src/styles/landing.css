@@ -34,13 +34,15 @@
 }
 
 .landing-brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: #050505;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.landing-brand-mark img {
+  height: 100%;
+  width: auto;
+  border-radius: 7px;
 }
 
 .landing-nav-links {
@@ -486,6 +488,12 @@
   gap: 10px;
   font-weight: 600;
   color: var(--text-secondary);
+}
+
+.footer-logo {
+  height: 24px;
+  width: auto;
+  border-radius: 6px;
 }
 
 .footer-links {

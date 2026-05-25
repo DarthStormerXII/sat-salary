@@ -3,7 +3,6 @@ import {
   Activity,
   ArrowRight,
   BadgeDollarSign,
-  Bitcoin,
   Gauge,
   LogOut,
   RefreshCcw,
@@ -70,7 +69,7 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
       <nav className="dash-nav">
         <div className="dash-brand">
           <div className="dash-brand-mark">
-            <Bitcoin size={14} />
+            <img src="/logo-mark.png" alt="Sat Salary logo" />
           </div>
           Sat Salary
         </div>
