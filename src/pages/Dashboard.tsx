@@ -14,6 +14,7 @@ import {
 import { useBalance } from "wagmi";
 import { WorkerCard } from "../components/WorkerCard";
 import { RealFlowPanel } from "../components/RealFlowPanel";
+import { ActivityFeed } from "../components/ActivityFeed";
 import { initialDemoState } from "../lib/demoState";
 import { formatMusd, formatUsd } from "../lib/format";
 import { fetchBtcPrice, fetchTroveState, type TroveState } from "../lib/mezo";
@@ -106,6 +107,9 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
       <div className="dash-container">
         {/* Real on-chain flow — primary */}
         <RealFlowPanel />
+
+        {/* Real on-chain event timeline */}
+        <ActivityFeed />
 
         {/* Simulation preview — clearly labeled, secondary */}
         <div className="dash-sim-banner">

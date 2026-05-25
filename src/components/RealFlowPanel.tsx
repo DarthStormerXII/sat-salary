@@ -17,6 +17,7 @@ import {
 } from "../lib/satSalary";
 import { mezoTestnet } from "../lib/mezo";
 import { TxStepsDialog, type StepStatus, type TxStep } from "./TxStepsDialog";
+import { TreasuryGauge } from "./TreasuryGauge";
 
 const TROVE = {
   address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
@@ -73,6 +74,29 @@ export function RealFlowPanel() {
   const unallocated = core?.[5]?.result as bigint | undefined;
   const streamCount = Number((core?.[6]?.result as bigint | undefined) ?? 0n);
   const totalRate = core?.[7]?.result as bigint | undefined;
+
+  // --- Derived treasury analytics (all from real reads) ---
+  const n = (v: bigint | undefined) =>
+    v === undefined ? null : Number(v) / 1e18;
+  const collBtc = n(coll);
+  const btcUsd = n(btcPrice);
+  const collUsd = collBtc !== null && btcUsd !== null ? collBtc * btcUsd : null;
+  const debtMusd = n(debt);
+  const equity =
+    collUsd !== null && debtMusd !== null ? collUsd - debtMusd : null;
+  const ltv =
+    collUsd !== null && debtMusd !== null && collUsd > 0
+      ? (debtMusd / collUsd) * 100
+      : null;
+  const healthPct = health !== undefined ? Number(health) / 1e16 : null;
+  const ratePerSec = n(totalRate) ?? 0;
+  const reserveMusd = n(reserve) ?? 0;
+  const runwayDays = ratePerSec > 0 ? reserveMusd / (ratePerSec * 86400) : null;
+  // Gauge thresholds: Mezo MCR (liquidation) 110%, contract REBALANCE_THRESHOLD
+  // 180%, TARGET_RATIO_AFTER_REBALANCE 250%.
+  const MCR = 110;
+  const REBAL = 180;
+  const TARGET = 250;
 
   // --- Stream rows (streams(i) + pending(i)) ---
   const streamContracts = useMemo(() => {
@@ -221,6 +245,48 @@ export function RealFlowPanel() {
         </a>
       </div>
 
+      <div className="real-flow__treasury">
+        <TreasuryGauge
+          healthPct={healthPct}
+          mcrPct={MCR}
+          rebalancePct={REBAL}
+          targetPct={TARGET}
+        />
+        <div className="real-flow__valuation">
+          <div className="real-flow__bigval">
+            <span>Collateral value</span>
+            <strong>
+              {collUsd !== null
+                ? `$${collUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                : "—"}
+            </strong>
+            <em>
+              {collBtc !== null ? `${collBtc.toFixed(4)} BTC retained` : ""}
+            </em>
+          </div>
+          <div className="real-flow__valgrid">
+            <div>
+              <span>Equity</span>
+              <strong>
+                {equity !== null
+                  ? `$${equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                  : "—"}
+              </strong>
+            </div>
+            <div>
+              <span>Loan-to-value</span>
+              <strong>{ltv !== null ? `${ltv.toFixed(1)}%` : "—"}</strong>
+            </div>
+            <div>
+              <span>Payroll runway</span>
+              <strong>
+                {runwayDays !== null ? `${runwayDays.toFixed(0)} days` : "∞"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="real-flow__metrics">
         <div>
           <span>BTC oracle</span>
@@ -270,8 +336,9 @@ export function RealFlowPanel() {
         <h4>
           Payroll streams{" "}
           <span>
-            {streams.length} active ·{" "}
-            {totalRate ? `${fmt(totalRate * 3600n, 2)} MUSD/hr` : "—"}
+            {streams.length} active · {(ratePerSec * 3600).toFixed(2)}/hr ·{" "}
+            {(ratePerSec * 86400).toFixed(1)}/day ·{" "}
+            {(ratePerSec * 2592000).toFixed(0)} MUSD/mo
           </span>
         </h4>
         {streams.length === 0 && (

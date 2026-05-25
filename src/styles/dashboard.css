@@ -861,3 +861,223 @@
   line-height: 1.5;
   color: var(--text-muted);
 }
+
+/* ── Treasury hero: gauge + valuation ── */
+.real-flow__treasury {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.gauge__svg {
+  width: 220px;
+  height: auto;
+}
+.gauge__zone {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+.gauge__zone--danger {
+  stroke: var(--red, #ff4444);
+  opacity: 0.85;
+}
+.gauge__zone--warn {
+  stroke: var(--accent, #f2b84b);
+  opacity: 0.85;
+}
+.gauge__zone--safe {
+  stroke: var(--green, #36d399);
+  opacity: 0.85;
+}
+.gauge__needle {
+  stroke: var(--text-primary, #fff);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.gauge__hub {
+  fill: var(--text-primary, #fff);
+}
+.gauge__target {
+  fill: none;
+  stroke: var(--text-primary, #fff);
+  stroke-width: 2;
+}
+.gauge__readout {
+  text-align: center;
+  margin-top: -18px;
+}
+.gauge__readout strong {
+  display: block;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+}
+.gauge__readout strong.is-safe {
+  color: var(--green, #36d399);
+}
+.gauge__readout strong.is-warn {
+  color: var(--accent, #f2b84b);
+}
+.gauge__readout strong.is-danger {
+  color: var(--red, #ff4444);
+}
+.gauge__readout span {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.gauge__legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.gauge__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.gauge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.gauge__dot--danger {
+  background: var(--red, #ff4444);
+}
+.gauge__dot--warn {
+  background: var(--accent, #f2b84b);
+}
+.gauge__dot--safe {
+  background: var(--green, #36d399);
+}
+.real-flow__valuation {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.real-flow__bigval span {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.real-flow__bigval strong {
+  display: block;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.real-flow__bigval em {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.real-flow__valgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.real-flow__valgrid > div {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+}
+.real-flow__valgrid span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.real-flow__valgrid strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── On-chain activity feed ── */
+.activity-feed {
+  padding: 24px 28px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  margin-bottom: 24px;
+}
+.activity-feed__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.activity-feed__header h3 {
+  font-size: 16px;
+}
+.activity-feed__header span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.activity-feed__empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 10px 0;
+}
+.activity-feed__list {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.15s ease;
+}
+.activity-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.activity-row__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.activity-row__detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 10px;
+}
+.activity-row__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+@media (max-width: 720px) {
+  .real-flow__treasury {
+    grid-template-columns: 1fr;
+  }
+  .real-flow__valgrid {
+    grid-template-columns: 1fr;
+  }
+}
