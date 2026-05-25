@@ -32,7 +32,7 @@ export const SAT_SALARY_VAULT = {
 };
 
 export const SAT_SALARY_TROVE = {
-  address: "0x12D2162F47AAAe1B0591e898648605daA186D644" as const,
+  address: "0x306919805eed1ad4772d92e18d00a1c132b07c19" as const,
   deployer: "0x6B9ad963c764a06A7ef8ff96D38D0cB86575eC00" as const,
 };
 

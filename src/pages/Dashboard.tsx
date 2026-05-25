@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useBalance } from "wagmi";
 import { WorkerCard } from "../components/WorkerCard";
+import { RealFlowPanel } from "../components/RealFlowPanel";
 import { initialDemoState } from "../lib/demoState";
 import { formatMusd, formatUsd } from "../lib/format";
 import { fetchBtcPrice, fetchTroveState, type TroveState } from "../lib/mezo";
@@ -103,6 +104,19 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
       </nav>
 
       <div className="dash-container">
+        {/* Real on-chain flow — primary */}
+        <RealFlowPanel />
+
+        {/* Simulation preview — clearly labeled, secondary */}
+        <div className="dash-sim-banner">
+          <Activity size={14} />
+          <span>
+            Fast-forward simulation below — accelerates streaming &amp;
+            stress-tests the position locally. The numbers above are live
+            on-chain.
+          </span>
+        </div>
+
         {/* Treasury */}
         <div className="dash-treasury">
           <div className="dash-treasury-header">
