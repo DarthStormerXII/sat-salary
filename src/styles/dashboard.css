@@ -676,6 +676,38 @@
   color: var(--text-muted);
   padding: 12px 0;
 }
+
+.real-flow__empty-team {
+  text-align: center;
+  padding: 64px 24px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin-top: 16px;
+}
+
+.real-flow__empty-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.real-flow__empty-team h4 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.real-flow__empty-team p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 380px;
+  margin: 0 auto;
+}
 .real-flow__stream {
   display: flex;
   align-items: center;

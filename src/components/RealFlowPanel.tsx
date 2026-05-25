@@ -232,9 +232,10 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
 
   const showTreasury = view === "dashboard" || view === "treasury";
   const showStreams =
-    view === "dashboard" || view === "team" || view === "earnings";
-  const showOwnerControls = view === "team";
+    view === "dashboard" || (view === "team" && isOwner) || view === "earnings";
+  const showOwnerControls = view === "team" && isOwner;
   const showOnlyMine = view === "earnings";
+  const showTeamEmpty = view === "team" && !isOwner;
 
   const headings: Record<string, string> = {
     dashboard: "Payroll Overview",
@@ -261,6 +262,19 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
           <ArrowUpRight size={13} />
         </a>
       </div>
+
+      {showTeamEmpty && (
+        <div className="real-flow__empty-team">
+          <div className="real-flow__empty-icon">
+            <Plus size={28} />
+          </div>
+          <h4>No team members yet</h4>
+          <p>
+            You'll be able to add employees and stream MUSD payroll once you've
+            opened a payroll trove. Post BTC collateral to get started.
+          </p>
+        </div>
+      )}
 
       {showTreasury && (
         <>
