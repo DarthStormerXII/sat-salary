@@ -50,22 +50,60 @@ function saveRole(address: string, role: Role) {
   } catch {}
 }
 
+const HERO_VIDEO =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260306_074215_04640ca7-042c-45d6-bb56-58b1e8a42489.mp4";
+
 function Onboarding({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
     <div className="onboarding">
+      {/* Video background — same as landing hero */}
+      <div className="onboarding__video-wrap">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="onboarding__video"
+        >
+          <source src={HERO_VIDEO} type="video/mp4" />
+        </video>
+      </div>
+      <div className="onboarding__blur-mask" />
+      <div className="onboarding__center-blob" />
+      <div className="onboarding__grain" />
+
       <motion.div
         className="onboarding__card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0, filter: "blur(16px)", y: 30 }}
+        animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
+        <div className="onboarding__brand">
+          <img
+            src="/logo-mark.png"
+            alt="Sat Salary"
+            className="onboarding__logo"
+          />
+          <span>Sat Salary</span>
+        </div>
+
         <h2>Welcome to Sat Salary</h2>
-        <p>How will you use Sat Salary on Mezo?</p>
+        <p className="onboarding__sub">
+          Stream payroll in MUSD without selling a sat.
+          <br />
+          How will you use Sat Salary?
+        </p>
 
         <div className="onboarding__choices">
-          <button
+          <motion.button
             className="onboarding__choice"
             onClick={() => onSelect("employer")}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="onboarding__icon">
               <Briefcase size={24} />
@@ -74,11 +112,16 @@ function Onboarding({ onSelect }: { onSelect: (role: Role) => void }) {
             <p>
               Post BTC collateral, borrow MUSD, and stream payroll to your team.
             </p>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             className="onboarding__choice"
             onClick={() => onSelect("employee")}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="onboarding__icon">
               <Wallet size={24} />
@@ -87,8 +130,10 @@ function Onboarding({ onSelect }: { onSelect: (role: Role) => void }) {
             <p>
               View your salary streams and claim accrued MUSD earnings anytime.
             </p>
-          </button>
+          </motion.button>
         </div>
+
+        <p className="onboarding__mezo-badge">Powered by Mezo · Chain 31611</p>
       </motion.div>
     </div>
   );
