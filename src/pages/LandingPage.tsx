@@ -8,14 +8,9 @@ import { fetchBtcPrice } from "../lib/mezo";
 interface LandingPageProps {
   onConnect: () => void;
   connecting: boolean;
-  connectError: string | null;
 }
 
-export function LandingPage({
-  onConnect,
-  connecting,
-  connectError,
-}: LandingPageProps) {
+export function LandingPage({ onConnect, connecting }: LandingPageProps) {
   const [btcPrice, setBtcPrice] = useState<bigint | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,7 +58,6 @@ export function LandingPage({
         btcPrice={btcPrice}
         onConnect={onConnect}
         connecting={connecting}
-        connectError={connectError}
       />
       <LandingFeatures />
       <LandingHowItWorks />

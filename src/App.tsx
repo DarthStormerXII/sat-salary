@@ -1,42 +1,21 @@
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAccount, useDisconnect } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { LandingPage } from "./pages/LandingPage";
 import { Dashboard } from "./pages/Dashboard";
-import { connectAndSignWallet, WalletAuthError } from "./lib/walletAuth";
 
 export default function App() {
-  const [wallet, setWallet] = useState<{
-    account: string;
-    chainId: number;
-  } | null>(null);
-  const [connecting, setConnecting] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
+  const { address, isConnected, isConnecting } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { disconnect } = useDisconnect();
 
-  async function handleConnect() {
-    setConnecting(true);
-    setConnectError(null);
-    try {
-      const proof = await connectAndSignWallet();
-      setWallet({ account: proof.account, chainId: proof.chainId });
-    } catch (err) {
-      const message =
-        err instanceof WalletAuthError
-          ? err.message
-          : "Wallet connection failed.";
-      setConnectError(message);
-      setConnecting(false);
-    }
-  }
-
-  function handleDisconnect() {
-    setWallet(null);
-    setConnecting(false);
-    setConnectError(null);
+  function handleConnect() {
+    openConnectModal?.();
   }
 
   return (
     <AnimatePresence mode="wait">
-      {wallet ? (
+      {isConnected && address ? (
         <motion.div
           key="dashboard"
           initial={{ opacity: 0 }}
@@ -44,7 +23,7 @@ export default function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Dashboard account={wallet.account} onDisconnect={handleDisconnect} />
+          <Dashboard account={address} onDisconnect={() => disconnect()} />
         </motion.div>
       ) : (
         <motion.div
@@ -54,11 +33,7 @@ export default function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <LandingPage
-            onConnect={handleConnect}
-            connecting={connecting}
-            connectError={connectError}
-          />
+          <LandingPage onConnect={handleConnect} connecting={isConnecting} />
         </motion.div>
       )}
     </AnimatePresence>

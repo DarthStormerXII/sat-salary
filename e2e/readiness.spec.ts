@@ -36,6 +36,16 @@ test("landing page features and how-it-works sections render", async ({
   ).toBeVisible();
 });
 
+test("connect wallet opens the RainbowKit wallet modal", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForTimeout(2000);
+  await page.locator(".hero-cta").click();
+  await page.waitForTimeout(2000);
+
+  await expect(page.getByText("Connect a Wallet")).toBeVisible();
+  await expect(page.getByText("WalletConnect")).toBeVisible();
+});
+
 test("footer shows deployed contract links", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
