@@ -1,0 +1,9 @@
+node_modules/
+out/
+.remotion/
+*.log
+# Large local media — keep these out of git; store recordings/audio in the drop folders only
+public/demo/*.mp4
+public/demo/*.mov
+public/audio/*.mp3
+public/audio/*.wav

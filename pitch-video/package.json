@@ -1,0 +1,23 @@
+{
+  "name": "sat-salary-pitch-video",
+  "version": "1.0.0",
+  "description": "3-minute Remotion pitch video for Sat Salary — Mezo Hackathon submission. Demo segments are placeholders for real app screen recordings.",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render src/index.ts SatSalaryPitch out/sat-salary-pitch.mp4 --concurrency=1",
+    "still": "remotion still src/index.ts SatSalaryPitch out/preview.png --frame=20",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.230",
+    "@remotion/google-fonts": "4.0.230",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.230"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.5.0"
+  }
+}
