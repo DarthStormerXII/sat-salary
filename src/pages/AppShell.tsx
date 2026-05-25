@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Bitcoin,
+  Compass,
   Droplet,
   LayoutDashboard,
   LogOut,
   Activity as ActivityIcon,
+  Plus,
   Users,
   Wallet,
 } from "lucide-react";
@@ -19,7 +21,7 @@ import {
 } from "../components/app/OnboardingFlow";
 import { SAT_SALARY_OWNER } from "../lib/satSalary";
 
-type Tab = "dashboard" | "team" | "earnings" | "activity";
+type Tab = "dashboard" | "team" | "earnings" | "explorer" | "activity";
 
 const FAUCET_URL = "https://faucet.test.mezo.org/";
 const MIN_GAS_WEI = 100_000_000_000_000n;
@@ -104,12 +106,14 @@ export function AppShell() {
   const employerTabs: { id: Tab; label: string; icon: typeof Bitcoin }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "team", label: "Team", icon: Users },
+    { id: "explorer", label: "Explorer", icon: Compass },
     { id: "activity", label: "Activity", icon: ActivityIcon },
   ];
 
   const employeeTabs: { id: Tab; label: string; icon: typeof Bitcoin }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "earnings", label: "My Earnings", icon: Wallet },
+    { id: "explorer", label: "Explorer", icon: Compass },
     { id: "activity", label: "Activity", icon: ActivityIcon },
   ];
 
@@ -201,9 +205,49 @@ export function AppShell() {
           </div>
         )}
 
-        {activeTab === "dashboard" && <RealFlowPanel view="dashboard" />}
+        {activeTab === "dashboard" &&
+          (isOwner ? (
+            <RealFlowPanel view="treasury" />
+          ) : (
+            <div className="empty-dashboard">
+              <div className="empty-dashboard__card">
+                <div className="empty-dashboard__icon">
+                  {role === "employer" ? (
+                    <Plus size={28} />
+                  ) : (
+                    <Wallet size={28} />
+                  )}
+                </div>
+                <h3>
+                  {role === "employer"
+                    ? "Set up your payroll treasury"
+                    : "No salary streams yet"}
+                </h3>
+                <p>
+                  {role === "employer"
+                    ? "Post BTC as collateral, borrow MUSD, and start streaming payroll to your team. Your Bitcoin stays on the balance sheet."
+                    : "Your employer hasn't added you to a payroll stream yet. Share your wallet address with them to get started."}
+                </p>
+                {role === "employer" && (
+                  <button
+                    className="empty-dashboard__cta"
+                    onClick={() => setActiveTab("team")}
+                  >
+                    Open Treasury <ArrowRight size={16} />
+                  </button>
+                )}
+                {role === "employee" && address && (
+                  <div className="empty-dashboard__addr">
+                    <span>Your address</span>
+                    <code>{address}</code>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         {activeTab === "team" && <RealFlowPanel view="team" />}
         {activeTab === "earnings" && <RealFlowPanel view="earnings" />}
+        {activeTab === "explorer" && <RealFlowPanel view="dashboard" />}
         {activeTab === "activity" && <ActivityFeed />}
       </main>
     </div>
