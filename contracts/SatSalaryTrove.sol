@@ -103,6 +103,30 @@ contract SatSalaryTrove {
         emit PayrollFunded(_amount);
     }
 
+    /// @notice Allocate MUSD already held by this contract (e.g. borrowed via
+    /// openTrove) into the payroll reserve so streams can pay it out. Keeps any
+    /// unallocated balance free as a rebalance buffer.
+    function allocateToPayroll(uint256 _amount) external onlyOwner {
+        require(_amount > 0, "ZERO_FUND");
+        require(unallocatedMusd() >= _amount, "INSUFFICIENT_MUSD");
+        payrollReserve += _amount;
+        emit PayrollFunded(_amount);
+    }
+
+    /// @notice MUSD held by the contract that is not committed to payroll —
+    /// available for rebalance debt repayment or owner sweep.
+    function unallocatedMusd() public view returns (uint256) {
+        uint256 bal = musd.balanceOf(address(this));
+        return bal > payrollReserve ? bal - payrollReserve : 0;
+    }
+
+    /// @notice Owner can recover unallocated MUSD (never touches payroll reserve).
+    function sweepMusd(address _to, uint256 _amount) external onlyOwner {
+        require(_to != address(0), "ZERO_TO");
+        require(unallocatedMusd() >= _amount, "INSUFFICIENT_MUSD");
+        require(musd.transfer(_to, _amount), "MUSD_TRANSFER");
+    }
+
     // --- Payroll streams ---
 
     function createStream(address _payee, uint256 _ratePerSecond) external onlyOwner returns (uint256 streamId) {

@@ -1,13 +1,40 @@
 {
   "network": "Mezo Testnet",
   "chainId": 31611,
-  "contract": "SatSalaryVault",
-  "address": "0x48B051F3e565E394ED8522ac453d87b3Fa40ad62",
+  "rpc": "https://rpc.test.mezo.org",
+  "explorer": "https://explorer.test.mezo.org",
   "deployer": "0x6B9ad963c764a06A7ef8ff96D38D0cB86575eC00",
-  "txHash": "0x855bb686ec01b57b1e55f5c1bb10b850cbe7341115b72f27a432f4ca426a2822",
-  "musdAddress": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
-  "explorerUrl": "https://explorer.test.mezo.org/tx/0x855bb686ec01b57b1e55f5c1bb10b850cbe7341115b72f27a432f4ca426a2822",
-  "contractExplorerUrl": "https://explorer.test.mezo.org/address/0x48B051F3e565E394ED8522ac453d87b3Fa40ad62",
-  "timestamp": 1779661736,
-  "rpc": "https://rpc.test.mezo.org"
+  "contracts": {
+    "SatSalaryTrove": {
+      "address": "0x306919805eed1ad4772d92e18d00a1c132b07c19",
+      "deployTxHash": "0x6f1aae798c638c308c94fd255ce6b70cb7448d7d919a82ea6614522a1e08adfa",
+      "note": "Real-flow trove with allocateToPayroll/sweepMusd. Replaces deprecated 0x12D2162F47AAAe1B0591e898648605daA186D644.",
+      "realTrove": {
+        "openTxHash": "0xd19b742e63f7d7353346183ef2fb53178cefdd3f4bad588f2bfc6658ee74225d",
+        "allocateTxHash": "0x5131be0aaa06943965922235d61f0c43d840739f3cd1ef9d1671358f97f44154",
+        "collateralBtc": "0.05",
+        "debtMusd": "2001.8",
+        "healthFactorPct": "192",
+        "payrollReserveMusd": "1500",
+        "bufferMusd": "300"
+      }
+    },
+    "SatSalaryVault": {
+      "address": "0x48B051F3e565E394ED8522ac453d87b3Fa40ad62",
+      "note": "Simple streaming vault (earlier deploy)."
+    },
+    "SatSalaryTrove_deprecated": {
+      "address": "0x12D2162F47AAAe1B0591e898648605daA186D644",
+      "note": "Pre-allocateToPayroll version; no longer used."
+    }
+  },
+  "mezoCore": {
+    "MUSD": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+    "BorrowerOperations": "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
+    "TroveManager": "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
+    "PriceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
+    "HintHelpers": "0x4e4cBA3779d56386ED43631b4dCD6d8EacEcBCF6",
+    "SortedTroves": "0x722E4D24FD6Ff8b0AC679450F3D91294607268fA"
+  },
+  "updatedAt": "2026-05-25"
 }
