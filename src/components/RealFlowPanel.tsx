@@ -46,7 +46,11 @@ interface StreamRow {
   pending: bigint;
 }
 
-export function RealFlowPanel() {
+interface RealFlowPanelProps {
+  view?: "treasury" | "team" | "earnings";
+}
+
+export function RealFlowPanel({ view = "treasury" }: RealFlowPanelProps) {
   const { address } = useAccount();
   const isOwner =
     !!address && address.toLowerCase() === SAT_SALARY_OWNER.toLowerCase();
@@ -226,12 +230,21 @@ export function RealFlowPanel() {
   // Net payroll funding cost = borrow rate − Mezo Earn (mainnet Savings Vault) APR.
   const netCostBps = borrowBps !== null ? borrowBps - MEZO_EARN_APR_BPS : null;
 
+  const showTreasury = view === "treasury";
+  const showTeam = view === "team" || view === "earnings";
+
   return (
     <section className="real-flow">
       <div className="real-flow__header">
         <div>
           <p className="eyebrow">Live on Mezo Testnet</p>
-          <h3>Real payroll trove</h3>
+          <h3>
+            {showTreasury
+              ? "Treasury"
+              : showTeam
+                ? "Payroll streams"
+                : "Real payroll trove"}
+          </h3>
         </div>
         <a
           className="real-flow__contract"
@@ -245,189 +258,203 @@ export function RealFlowPanel() {
         </a>
       </div>
 
-      <div className="real-flow__treasury">
-        <TreasuryGauge
-          healthPct={healthPct}
-          mcrPct={MCR}
-          rebalancePct={REBAL}
-          targetPct={TARGET}
-        />
-        <div className="real-flow__valuation">
-          <div className="real-flow__bigval">
-            <span>Collateral value</span>
-            <strong>
-              {collUsd !== null
-                ? `$${collUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-                : "—"}
-            </strong>
-            <em>
-              {collBtc !== null ? `${collBtc.toFixed(4)} BTC retained` : ""}
-            </em>
+      {showTreasury && (
+        <>
+          <div className="real-flow__treasury">
+            <TreasuryGauge
+              healthPct={healthPct}
+              mcrPct={MCR}
+              rebalancePct={REBAL}
+              targetPct={TARGET}
+            />
+            <div className="real-flow__valuation">
+              <div className="real-flow__bigval">
+                <span>Collateral value</span>
+                <strong>
+                  {collUsd !== null
+                    ? `$${collUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                    : "—"}
+                </strong>
+                <em>
+                  {collBtc !== null ? `${collBtc.toFixed(4)} BTC retained` : ""}
+                </em>
+              </div>
+              <div className="real-flow__valgrid">
+                <div>
+                  <span>Equity</span>
+                  <strong>
+                    {equity !== null
+                      ? `$${equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                      : "—"}
+                  </strong>
+                </div>
+                <div>
+                  <span>Loan-to-value</span>
+                  <strong>{ltv !== null ? `${ltv.toFixed(1)}%` : "—"}</strong>
+                </div>
+                <div>
+                  <span>Payroll runway</span>
+                  <strong>
+                    {runwayDays !== null
+                      ? `${runwayDays.toFixed(0)} days`
+                      : "∞"}
+                  </strong>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="real-flow__valgrid">
-            <div>
-              <span>Equity</span>
-              <strong>
-                {equity !== null
-                  ? `$${equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-                  : "—"}
-              </strong>
-            </div>
-            <div>
-              <span>Loan-to-value</span>
-              <strong>{ltv !== null ? `${ltv.toFixed(1)}%` : "—"}</strong>
-            </div>
-            <div>
-              <span>Payroll runway</span>
-              <strong>
-                {runwayDays !== null ? `${runwayDays.toFixed(0)} days` : "∞"}
-              </strong>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="real-flow__metrics">
-        <div>
-          <span>BTC oracle</span>
-          <strong>${fmt(btcPrice, 0)}</strong>
-        </div>
-        <div>
-          <span>Collateral</span>
-          <strong>{fmt(coll, 4)} BTC</strong>
-        </div>
-        <div>
-          <span>MUSD debt</span>
-          <strong>{fmt(debt, 0)}</strong>
-        </div>
-        <div>
-          <span>Health</span>
-          <strong>{health ? `${fmt(health, 0, 16)}%` : "—"}</strong>
-        </div>
-        <div>
-          <span>Payroll reserve</span>
-          <strong>{fmt(reserve, 0)} MUSD</strong>
-        </div>
-        <div>
-          <span>Buffer</span>
-          <strong>{fmt(unallocated, 0)} MUSD</strong>
-        </div>
-      </div>
-      {borrowBps !== null && (
-        <div className="real-flow__netcost">
-          <div>
-            <span>Net payroll funding cost</span>
-            <strong className={netCostBps! <= 0 ? "is-negative" : ""}>
-              {(netCostBps! / 100).toFixed(1)}% / yr
-            </strong>
+          <div className="real-flow__metrics">
+            <div>
+              <span>BTC oracle</span>
+              <strong>${fmt(btcPrice, 0)}</strong>
+            </div>
+            <div>
+              <span>Collateral</span>
+              <strong>{fmt(coll, 4)} BTC</strong>
+            </div>
+            <div>
+              <span>MUSD debt</span>
+              <strong>{fmt(debt, 0)}</strong>
+            </div>
+            <div>
+              <span>Health</span>
+              <strong>{health ? `${fmt(health, 0, 16)}%` : "—"}</strong>
+            </div>
+            <div>
+              <span>Payroll reserve</span>
+              <strong>{fmt(reserve, 0)} MUSD</strong>
+            </div>
+            <div>
+              <span>Buffer</span>
+              <strong>{fmt(unallocated, 0)} MUSD</strong>
+            </div>
           </div>
-          <p>
-            Borrow {(borrowBps / 100).toFixed(1)}% APR (live on-chain) − Mezo
-            Earn ~{(MEZO_EARN_APR_BPS / 100).toFixed(0)}% APR
-            {netCostBps! <= 0 ? " → payroll funds itself." : "."} Earn rate is
-            the live mainnet MUSD Savings Vault (sMUSD); testnet has no vault
-            yet, so idle-reserve deposit is projected, not on-chain here.
-          </p>
-        </div>
+          {borrowBps !== null && (
+            <div className="real-flow__netcost">
+              <div>
+                <span>Net payroll funding cost</span>
+                <strong className={netCostBps! <= 0 ? "is-negative" : ""}>
+                  {(netCostBps! / 100).toFixed(1)}% / yr
+                </strong>
+              </div>
+              <p>
+                Borrow {(borrowBps / 100).toFixed(1)}% APR (live on-chain) −
+                Mezo Earn ~{(MEZO_EARN_APR_BPS / 100).toFixed(0)}% APR
+                {netCostBps! <= 0 ? " → payroll funds itself." : "."} Earn rate
+                is the live mainnet MUSD Savings Vault (sMUSD); testnet has no
+                vault yet, so idle-reserve deposit is projected, not on-chain
+                here.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Streams */}
-      <div className="real-flow__streams">
-        <h4>
-          Payroll streams{" "}
-          <span>
-            {streams.length} active · {(ratePerSec * 3600).toFixed(2)}/hr ·{" "}
-            {(ratePerSec * 86400).toFixed(1)}/day ·{" "}
-            {(ratePerSec * 2592000).toFixed(0)} MUSD/mo
-          </span>
-        </h4>
-        {streams.length === 0 && (
-          <p className="real-flow__empty">
-            No streams yet.{" "}
-            {isOwner
-              ? "Create one below."
-              : "The employer hasn't created your stream yet."}
-          </p>
-        )}
-        {streams.map((s) => {
-          const mine =
-            !!address && s.payee.toLowerCase() === address.toLowerCase();
-          return (
-            <div
-              key={s.id}
-              className={`real-flow__stream ${mine ? "is-mine" : ""}`}
-            >
-              <div>
-                <span className="real-flow__payee">
-                  {s.payee.slice(0, 6)}…{s.payee.slice(-4)}
-                  {mine && <em> (you)</em>}
-                </span>
-                <span className="real-flow__rate">
-                  {fmt(s.ratePerSecond * BigInt(SECONDS_PER_MONTH), 0)} MUSD/mo
-                  {s.paused && " · paused"}
-                </span>
+      {showTeam && (
+        <>
+          {/* Streams */}
+          <div className="real-flow__streams">
+            <h4>
+              Payroll streams{" "}
+              <span>
+                {streams.length} active · {(ratePerSec * 3600).toFixed(2)}/hr ·{" "}
+                {(ratePerSec * 86400).toFixed(1)}/day ·{" "}
+                {(ratePerSec * 2592000).toFixed(0)} MUSD/mo
+              </span>
+            </h4>
+            {streams.length === 0 && (
+              <p className="real-flow__empty">
+                No streams yet.{" "}
+                {isOwner
+                  ? "Create one below."
+                  : "The employer hasn't created your stream yet."}
+              </p>
+            )}
+            {streams.map((s) => {
+              const mine =
+                !!address && s.payee.toLowerCase() === address.toLowerCase();
+              return (
+                <div
+                  key={s.id}
+                  className={`real-flow__stream ${mine ? "is-mine" : ""}`}
+                >
+                  <div>
+                    <span className="real-flow__payee">
+                      {s.payee.slice(0, 6)}…{s.payee.slice(-4)}
+                      {mine && <em> (you)</em>}
+                    </span>
+                    <span className="real-flow__rate">
+                      {fmt(s.ratePerSecond * BigInt(SECONDS_PER_MONTH), 0)}{" "}
+                      MUSD/mo
+                      {s.paused && " · paused"}
+                    </span>
+                  </div>
+                  <div className="real-flow__claimable">
+                    <span>{fmt(s.pending, 2)} MUSD</span>
+                    {mine && (
+                      <button
+                        className="action-btn action-btn--primary"
+                        onClick={() => claim(s.id)}
+                        disabled={s.pending === 0n}
+                      >
+                        <Wallet size={14} /> Claim
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Owner controls */}
+          {isOwner && (
+            <div className="real-flow__owner">
+              <h4>Employer controls</h4>
+              <div className="real-flow__form">
+                <input
+                  type="text"
+                  inputMode="text"
+                  placeholder="Employee wallet 0x…"
+                  value={payee}
+                  onChange={(e) => setPayee(e.target.value.trim())}
+                />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="MUSD / month"
+                  value={monthly}
+                  onChange={(e) =>
+                    setMonthly(e.target.value.replace(/[^0-9.]/g, ""))
+                  }
+                />
+                <button
+                  className="action-btn action-btn--primary"
+                  onClick={createStream}
+                >
+                  <Plus size={14} /> Create stream
+                </button>
               </div>
-              <div className="real-flow__claimable">
-                <span>{fmt(s.pending, 2)} MUSD</span>
-                {mine && (
-                  <button
-                    className="action-btn action-btn--primary"
-                    onClick={() => claim(s.id)}
-                    disabled={s.pending === 0n}
-                  >
-                    <Wallet size={14} /> Claim
-                  </button>
-                )}
+              <div className="real-flow__form">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={`Allocate MUSD (buffer ${fmt(unallocated, 0)})`}
+                  value={alloc}
+                  onChange={(e) =>
+                    setAlloc(e.target.value.replace(/[^0-9.]/g, ""))
+                  }
+                />
+                <button
+                  className="action-btn action-btn--secondary"
+                  onClick={allocate}
+                >
+                  <Coins size={14} /> Allocate to payroll
+                </button>
               </div>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Owner controls */}
-      {isOwner && (
-        <div className="real-flow__owner">
-          <h4>Employer controls</h4>
-          <div className="real-flow__form">
-            <input
-              type="text"
-              inputMode="text"
-              placeholder="Employee wallet 0x…"
-              value={payee}
-              onChange={(e) => setPayee(e.target.value.trim())}
-            />
-            <input
-              type="text"
-              inputMode="decimal"
-              placeholder="MUSD / month"
-              value={monthly}
-              onChange={(e) =>
-                setMonthly(e.target.value.replace(/[^0-9.]/g, ""))
-              }
-            />
-            <button
-              className="action-btn action-btn--primary"
-              onClick={createStream}
-            >
-              <Plus size={14} /> Create stream
-            </button>
-          </div>
-          <div className="real-flow__form">
-            <input
-              type="text"
-              inputMode="decimal"
-              placeholder={`Allocate MUSD (buffer ${fmt(unallocated, 0)})`}
-              value={alloc}
-              onChange={(e) => setAlloc(e.target.value.replace(/[^0-9.]/g, ""))}
-            />
-            <button
-              className="action-btn action-btn--secondary"
-              onClick={allocate}
-            >
-              <Coins size={14} /> Allocate to payroll
-            </button>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
       <TxStepsDialog

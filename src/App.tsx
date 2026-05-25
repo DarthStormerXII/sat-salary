@@ -1,13 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { LandingPage } from "./pages/LandingPage";
-import { Dashboard } from "./pages/Dashboard";
+import { AppShell } from "./pages/AppShell";
 
 export default function App() {
   const { address, isConnected, isConnecting } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { disconnect } = useDisconnect();
 
   function handleConnect() {
     openConnectModal?.();
@@ -17,13 +16,13 @@ export default function App() {
     <AnimatePresence mode="wait">
       {isConnected && address ? (
         <motion.div
-          key="dashboard"
+          key="app"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Dashboard account={address} onDisconnect={() => disconnect()} />
+          <AppShell />
         </motion.div>
       ) : (
         <motion.div
