@@ -1,3 +1,4 @@
+import { staticFile } from "remotion";
 import { D } from "../constants";
 import { COLORS } from "../theme";
 import { mono } from "../fonts";
@@ -15,16 +16,19 @@ const MEMBERS: Member[] = [
     name: "Darth Stormer XII",
     role: "Web3 & smart contracts",
     cred: "Web3 specialist — has shipped web3 products across multiple hackathons.",
+    photo: "darth.jpg",
   },
   {
     name: "Joel Antony Xaviour",
     role: "Engineering & systems",
     cred: "Associate Tech Lead @ KLA · Data Science master's, PSG Tech · algorithms & systems.",
+    photo: "joel.jpg",
   },
   {
     name: "Marsella",
     role: "Business & go-to-market",
     cred: "Business development, pitch & events · BA Business Enterprise & Events, LSPR Jakarta.",
+    photo: "marsella.jpg",
   },
 ];
 
@@ -56,8 +60,9 @@ export const Team = () => {
                   height: 96,
                   borderRadius: "50%",
                   background: m.photo
-                    ? `center/cover url(${m.photo})`
+                    ? `center/cover url(${staticFile(`brand/${m.photo}`)})`
                     : `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.panelSoft})`,
+                  backgroundColor: COLORS.panelSoft,
                   border: `2px solid ${COLORS.borderAccent}`,
                   boxShadow: `0 0 40px -10px ${COLORS.accent}`,
                 }}
