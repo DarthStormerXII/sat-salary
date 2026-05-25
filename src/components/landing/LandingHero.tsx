@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Bitcoin } from "lucide-react";
 
 const HERO_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260306_074215_04640ca7-042c-45d6-bb56-58b1e8a42489.mp4";
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_230229_7c9bc431-46cf-489a-948d-e8144d8eb5d4.mp4";
 
 interface LandingHeroProps {
   btcPrice: bigint | null;
@@ -26,6 +26,16 @@ const marqueeItems = [
   "Liquidation protection",
   "Per-second accrual",
 ];
+
+const blurUp = (delay: number) => ({
+  initial: { opacity: 0, filter: "blur(20px)", y: 40 },
+  animate: { opacity: 1, filter: "blur(0px)", y: 0 },
+  transition: {
+    duration: 1,
+    ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+    delay,
+  },
+});
 
 export function LandingHero({
   btcPrice,
@@ -55,56 +65,43 @@ export function LandingHero({
         </video>
       </div>
 
-      {/* Gradient overlays */}
-      <div className="hero-vignette" />
-      <div className="hero-gradient" />
+      {/* Bottom blur overlay — mask fades blur to transparent toward top */}
+      <div className="hero-blur-mask" />
+
+      {/* Centered blur blob for depth */}
+      <div className="hero-center-blob" />
+
+      {/* Film grain */}
       <div className="hero-grain" />
 
-      {/* Floating orbs */}
-      <div className="hero-orb hero-orb--gold" />
-      <div className="hero-orb hero-orb--dim" />
-
       {/* Content */}
-      <motion.div
-        className="hero-content"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.9,
-          ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-        }}
-      >
-        <motion.div
-          className="hero-badge"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
+      <div className="hero-content">
+        <motion.div className="hero-badge" {...blurUp(0.1)}>
           <span className="hero-badge-dot" />
           Mezo Testnet — Live
         </motion.div>
 
-        <h1>
+        <motion.h1 {...blurUp(0.25)}>
           Stream payroll in <em>MUSD</em> without selling a sat.
-        </h1>
+        </motion.h1>
 
-        <p className="hero-sub">
+        <motion.p className="hero-sub" {...blurUp(0.4)}>
           Post BTC collateral, borrow MUSD at 1% fixed rate through Mezo's
           protocol, and stream it in real time to your team.
-        </p>
+        </motion.p>
 
-        <motion.button
-          className="hero-cta"
-          onClick={onConnect}
-          disabled={connecting}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          {connecting ? "Connecting…" : "Connect Wallet"}
-          <ArrowRight size={18} />
-        </motion.button>
+        <motion.div className="hero-cta-row" {...blurUp(0.55)}>
+          <button
+            className="hero-cta liquid-glass-btn"
+            onClick={onConnect}
+            disabled={connecting}
+          >
+            {connecting ? "Connecting…" : "Connect Wallet"}
+            <ArrowRight size={18} />
+          </button>
+        </motion.div>
 
-        <div className="hero-oracle">
+        <motion.div className="hero-oracle" {...blurUp(0.7)}>
           {btcPrice ? (
             <>
               <span>
@@ -119,16 +116,16 @@ export function LandingHero({
           ) : (
             <span>Loading oracle price…</span>
           )}
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
-      <div className="landing-marquee">
+      <motion.div className="landing-marquee" {...blurUp(0.85)}>
         <div className="marquee-inner">
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
             <span key={i}>{item}</span>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
