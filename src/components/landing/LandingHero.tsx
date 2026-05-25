@@ -1,5 +1,9 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Bitcoin } from "lucide-react";
+
+const HERO_VIDEO =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260306_074215_04640ca7-042c-45d6-bb56-58b1e8a42489.mp4";
 
 interface LandingHeroProps {
   btcPrice: bigint | null;
@@ -28,20 +32,53 @@ export function LandingHero({
   onConnect,
   connecting,
 }: LandingHeroProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
+
   return (
     <section className="landing-hero">
-      <div className="hero-bg" />
+      {/* Video background */}
+      <div className="hero-video-wrap">
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="hero-video"
+        >
+          <source src={HERO_VIDEO} type="video/mp4" />
+        </video>
+      </div>
+
+      {/* Gradient overlays */}
+      <div className="hero-vignette" />
+      <div className="hero-gradient" />
+      <div className="hero-grain" />
+
+      {/* Floating orbs */}
+      <div className="hero-orb hero-orb--gold" />
+      <div className="hero-orb hero-orb--dim" />
+
+      {/* Content */}
       <motion.div
         className="hero-content"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        transition={{
+          duration: 0.9,
+          ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+        }}
       >
         <motion.div
           className="hero-badge"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
         >
           <span className="hero-badge-dot" />
           Mezo Testnet — Live
@@ -60,8 +97,8 @@ export function LandingHero({
           className="hero-cta"
           onClick={onConnect}
           disabled={connecting}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.97 }}
         >
           {connecting ? "Connecting…" : "Connect Wallet"}
           <ArrowRight size={18} />
