@@ -3,6 +3,7 @@ import { COLORS } from "../theme";
 import { mono } from "../fonts";
 import { BrandMark, Headline } from "../components/ui";
 import { BrollOpener } from "../components/BrollOpener";
+import { MeshGlow, Particles } from "../components/viz";
 import { fadeIn, fadeUp } from "../utils";
 
 // 2:45–3:00 — CLOSE. Opens on the "relief" b-roll (same founder, calm, dawn) — the
@@ -13,6 +14,8 @@ export const Close = () => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill>
+      <MeshGlow />
+      <Particles count={22} />
       <AbsoluteFill
         style={{
           opacity: fadeIn(f, 0, 12), // no fade-out — land the plane
