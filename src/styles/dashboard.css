@@ -827,3 +827,37 @@
   gap: 10px;
   margin-top: 18px;
 }
+
+/* Net payroll cost */
+.real-flow__netcost {
+  margin: 16px 0 4px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--accent-dim);
+  border: 1px solid rgba(242, 184, 75, 0.2);
+}
+.real-flow__netcost > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.real-flow__netcost span {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.real-flow__netcost strong {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.real-flow__netcost strong.is-negative {
+  color: var(--green, #36d399);
+}
+.real-flow__netcost p {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

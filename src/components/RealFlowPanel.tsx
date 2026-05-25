@@ -11,6 +11,9 @@ import {
   SAT_SALARY_TROVE_ABI,
   SAT_SALARY_TROVE_ADDRESS,
   SAT_SALARY_OWNER,
+  INTEREST_RATE_MANAGER,
+  INTEREST_RATE_MANAGER_ABI,
+  MEZO_EARN_APR_BPS,
 } from "../lib/satSalary";
 import { mezoTestnet } from "../lib/mezo";
 import { TxStepsDialog, type StepStatus, type TxStep } from "./TxStepsDialog";
@@ -188,10 +191,16 @@ export function RealFlowPanel() {
     );
   }
 
-  const netCostNote =
-    debt && reserve !== undefined
-      ? "Borrow rate 1% APR · streamed in real MUSD"
-      : "";
+  // Live borrow rate from Mezo's InterestRateManager (bps).
+  const { data: borrowBpsRaw } = useReadContract({
+    address: INTEREST_RATE_MANAGER,
+    abi: INTEREST_RATE_MANAGER_ABI,
+    functionName: "interestRate",
+    query: { refetchInterval: 60000 },
+  });
+  const borrowBps = borrowBpsRaw !== undefined ? Number(borrowBpsRaw) : null;
+  // Net payroll funding cost = borrow rate − Mezo Earn (mainnet Savings Vault) APR.
+  const netCostBps = borrowBps !== null ? borrowBps - MEZO_EARN_APR_BPS : null;
 
   return (
     <section className="real-flow">
@@ -238,7 +247,23 @@ export function RealFlowPanel() {
           <strong>{fmt(unallocated, 0)} MUSD</strong>
         </div>
       </div>
-      {netCostNote && <p className="real-flow__note">{netCostNote}</p>}
+      {borrowBps !== null && (
+        <div className="real-flow__netcost">
+          <div>
+            <span>Net payroll funding cost</span>
+            <strong className={netCostBps! <= 0 ? "is-negative" : ""}>
+              {(netCostBps! / 100).toFixed(1)}% / yr
+            </strong>
+          </div>
+          <p>
+            Borrow {(borrowBps / 100).toFixed(1)}% APR (live on-chain) − Mezo
+            Earn ~{(MEZO_EARN_APR_BPS / 100).toFixed(0)}% APR
+            {netCostBps! <= 0 ? " → payroll funds itself." : "."} Earn rate is
+            the live mainnet MUSD Savings Vault (sMUSD); testnet has no vault
+            yet, so idle-reserve deposit is projected, not on-chain here.
+          </p>
+        </div>
+      )}
 
       {/* Streams */}
       <div className="real-flow__streams">
