@@ -4,7 +4,7 @@ export type DemoShot = {
   id: string;
   /** Short label shown in the on-screen step chip. */
   step: string;
-  /** Short caption shown over the recording (the VO/on-screen "duet" — keep it short). */
+  /** Short caption over the recording (the VO/on-screen "duet" — keep it short). */
   caption: string;
   /** What to actually record on screen for this shot. Shown inside the placeholder. */
   record: string;
@@ -16,52 +16,53 @@ export type DemoShot = {
   clip?: string;
 };
 
-// 5 shots == 60s of demo. Durations sum to D.demo (see constants.ts).
+// A GUIDED PRODUCT WALKTHROUGH — show a watcher how to actually USE Sat Salary,
+// step by step, like onboarding a new user. Not a "proof showcase". Real app, real
+// flow, narrated as "here's how you run payroll on this." 5 shots == 60s.
 export const DEMO_SHOTS: DemoShot[] = [
   {
     id: "d1",
     step: "01 · Connect",
-    caption: "Connect with a Bitcoin wallet — Passport does the rest",
+    caption: "Connect your Bitcoin wallet — no new keys",
     record:
-      "Click Connect → Mezo Passport modal → choose Xverse/Unisat/OKX → approve. Show the derived Mezo address land in the nav.",
+      "WALKTHROUGH: click Connect → Mezo Passport opens → pick your BTC wallet (Xverse/Unisat/OKX) → approve. Show your Mezo address land in the nav. Narrate as onboarding a brand-new user.",
     durationInFrames: sec(10),
     // clip: "01-connect.mp4",
   },
   {
     id: "d2",
-    step: "02 · Post BTC, borrow mUSD",
-    caption: "Post BTC, borrow mUSD at 1% — without selling",
+    step: "02 · Fund payroll",
+    caption: "Post BTC, borrow mUSD — your payroll treasury",
     record:
-      "Open the trove flow → enter BTC collateral + mUSD amount → confirm in wallet → trove opens, mUSD balance + health factor update. Cut to the explorer tx hash.",
+      "WALKTHROUGH: open the treasury panel → enter BTC collateral + how much mUSD to borrow → confirm in wallet → show collateral, mUSD balance and health factor update. Frame it as 'set up your treasury — your BTC keeps working, you never sell.'",
     durationInFrames: sec(14),
-    // clip: "02-open-trove.mp4",
+    // clip: "02-fund-treasury.mp4",
   },
   {
     id: "d3",
-    step: "03 · Stream payroll",
-    caption: "Add your team — salaries stream by the second",
+    step: "03 · Add your team",
+    caption: "Add an employee, set a salary — streaming starts",
     record:
-      "Add an employee (address + rate) → create-stream tx → the per-second accrual counter starts ticking live on the worker card.",
+      "WALKTHROUGH: add an employee (paste address + set rate) → start the stream → show the per-second accrual counter begin ticking on the worker card. Frame as 'now you're paying someone — by the second.'",
     durationInFrames: sec(14),
-    // clip: "03-stream.mp4",
+    // clip: "03-add-team.mp4",
   },
   {
     id: "d4",
-    step: "04 · Claim",
-    caption: "Employees claim real mUSD, any time",
+    step: "04 · Get paid",
+    caption: "Your team claims mUSD anytime — paid by the second",
     record:
-      "Switch to the employee wallet → open dashboard → click Claim → approve → mUSD balance increases. Cut to the explorer tx.",
+      "WALKTHROUGH (employee's view): open the dashboard → watch salary accrue live → click Claim → approve → mUSD balance increases. Frame as 'this is what your employee sees — they claim whenever they want.'",
     durationInFrames: sec(12),
     // clip: "04-claim.mp4",
   },
   {
     id: "d5",
-    step: "05 · Auto-protect",
-    caption:
-      "BTC drops → keeper auto-rebalances on-chain. Zero liquidation risk",
+    step: "05 · Set & forget",
+    caption: "Auto-protection keeps your treasury safe",
     record:
-      "Trigger BTC stress → health factor dips → keeper fires rebalance() → position restored to target ratio. Cut to the rebalance tx on explorer.",
+      "WALKTHROUGH: show the health factor → trigger the BTC stress control → health dips → the keeper auto-rebalances → healthy again. Frame as 'you never babysit it — if BTC drops, Sat Salary protects your treasury and payroll keeps running.'",
     durationInFrames: sec(10),
-    // clip: "05-rebalance.mp4",
+    // clip: "05-protect.mp4",
   },
 ];

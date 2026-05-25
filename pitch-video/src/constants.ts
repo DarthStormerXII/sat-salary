@@ -30,5 +30,5 @@ export const TOTAL_FRAMES = Object.values(D).reduce((a, b) => a + b, 0); // 5400
 
 // Toggle these on once you have recorded/produced the audio tracks and dropped
 // them into public/audio/. Left false so the project renders cleanly before audio exists.
-export const HAS_VOICEOVER = false; // public/audio/voiceover.mp3
+export const HAS_VOICEOVER = true; // public/audio/voiceover.mp3
 export const HAS_MUSIC = false; // public/audio/music.mp3

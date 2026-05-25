@@ -12,12 +12,20 @@ type Member = { name: string; role: string; cred: string; photo?: string };
 
 const MEMBERS: Member[] = [
   {
-    name: "[Your name]",
-    role: "[Role]",
-    cred: "[Background that makes you the right person — prior crypto/AI projects, shipped products]",
+    name: "Darth Stormer XII",
+    role: "Web3 & smart contracts",
+    cred: "Web3 specialist — has shipped web3 products across multiple hackathons.",
   },
-  { name: "[Teammate]", role: "[Role]", cred: "[One concrete, credible line]" },
-  { name: "[Teammate]", role: "[Role]", cred: "[One concrete, credible line]" },
+  {
+    name: "Joel Antony Xaviour",
+    role: "Engineering & systems",
+    cred: "Associate Tech Lead @ KLA · Data Science master's, PSG Tech · algorithms & systems.",
+  },
+  {
+    name: "Marsella",
+    role: "Business & go-to-market",
+    cred: "Business development, pitch & events · BA Business Enterprise & Events, LSPR Jakarta.",
+  },
 ];
 
 export const Team = () => {
