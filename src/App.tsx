@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LandingPage } from "./pages/LandingPage";
 import { Dashboard } from "./pages/Dashboard";
-import { connectAndSignWallet } from "./lib/walletAuth";
+import { connectAndSignWallet, WalletAuthError } from "./lib/walletAuth";
 
 export default function App() {
   const [wallet, setWallet] = useState<{
@@ -10,13 +10,20 @@ export default function App() {
     chainId: number;
   } | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   async function handleConnect() {
     setConnecting(true);
+    setConnectError(null);
     try {
       const proof = await connectAndSignWallet();
       setWallet({ account: proof.account, chainId: proof.chainId });
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof WalletAuthError
+          ? err.message
+          : "Wallet connection failed.";
+      setConnectError(message);
       setConnecting(false);
     }
   }
@@ -24,6 +31,7 @@ export default function App() {
   function handleDisconnect() {
     setWallet(null);
     setConnecting(false);
+    setConnectError(null);
   }
 
   return (
@@ -46,7 +54,11 @@ export default function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <LandingPage onConnect={handleConnect} connecting={connecting} />
+          <LandingPage
+            onConnect={handleConnect}
+            connecting={connecting}
+            connectError={connectError}
+          />
         </motion.div>
       )}
     </AnimatePresence>

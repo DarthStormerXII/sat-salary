@@ -9,6 +9,7 @@ interface LandingHeroProps {
   btcPrice: bigint | null;
   onConnect: () => void;
   connecting: boolean;
+  connectError: string | null;
 }
 
 function formatBtcPrice(price: bigint): string {
@@ -41,6 +42,7 @@ export function LandingHero({
   btcPrice,
   onConnect,
   connecting,
+  connectError,
 }: LandingHeroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -100,6 +102,8 @@ export function LandingHero({
             <ArrowRight size={18} />
           </button>
         </motion.div>
+
+        {connectError && <div className="hero-error">{connectError}</div>}
 
         <motion.div className="hero-oracle" {...blurUp(0.7)}>
           {btcPrice ? (

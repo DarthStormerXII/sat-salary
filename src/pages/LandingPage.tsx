@@ -9,10 +9,16 @@ import { fetchBtcPrice } from "../lib/mezo";
 interface LandingPageProps {
   onConnect: () => void;
   connecting: boolean;
+  connectError: string | null;
 }
 
-export function LandingPage({ onConnect, connecting }: LandingPageProps) {
+export function LandingPage({
+  onConnect,
+  connecting,
+  connectError,
+}: LandingPageProps) {
   const [btcPrice, setBtcPrice] = useState<bigint | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     fetchBtcPrice().then(setBtcPrice);
@@ -22,9 +28,17 @@ export function LandingPage({ onConnect, connecting }: LandingPageProps) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 40);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div>
-      <nav className="landing-nav">
+      <nav className={`landing-nav ${scrolled ? "landing-nav--scrolled" : ""}`}>
         <div className="landing-brand">
           <div className="landing-brand-mark">
             <Bitcoin size={16} />
@@ -50,6 +64,7 @@ export function LandingPage({ onConnect, connecting }: LandingPageProps) {
         btcPrice={btcPrice}
         onConnect={onConnect}
         connecting={connecting}
+        connectError={connectError}
       />
       <LandingFeatures />
       <LandingHowItWorks />
