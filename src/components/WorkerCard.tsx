@@ -6,18 +6,22 @@ export function WorkerCard({
   worker,
   onPause,
   onResume,
+  gasBlocked = false,
 }: {
   worker: Worker;
   onPause: () => void;
   onResume: () => void;
+  gasBlocked?: boolean;
 }) {
   const isStreaming = worker.streamStatus === "streaming";
   const isPaused = worker.streamStatus === "paused";
-  const buttonLabel = isPaused
-    ? "Resume stream"
-    : isStreaming
-      ? "Pause stream"
-      : "Start streams first";
+  const buttonLabel = gasBlocked
+    ? "Insufficient gas"
+    : isPaused
+      ? "Resume stream"
+      : isStreaming
+        ? "Pause stream"
+        : "Start streams first";
 
   return (
     <article className="worker-card" data-testid={`worker-${worker.id}`}>
@@ -56,11 +60,13 @@ export function WorkerCard({
         className="worker-action-btn"
         type="button"
         onClick={isPaused ? onResume : onPause}
-        disabled={!isStreaming && !isPaused}
+        disabled={gasBlocked || (!isStreaming && !isPaused)}
         title={
-          !isStreaming && !isPaused
-            ? "Use Start payroll streams before pausing worker streams."
-            : undefined
+          gasBlocked
+            ? "Claim testnet BTC for gas first."
+            : !isStreaming && !isPaused
+              ? "Use Start payroll streams before pausing worker streams."
+              : undefined
         }
       >
         {isPaused ? <CirclePlay size={16} /> : <CirclePause size={16} />}

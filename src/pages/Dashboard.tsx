@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowRight,
   BadgeDollarSign,
+  Droplet,
   Gauge,
   LogOut,
   RefreshCcw,
@@ -10,6 +11,7 @@ import {
   WalletCards,
   Zap,
 } from "lucide-react";
+import { useBalance } from "wagmi";
 import { WorkerCard } from "../components/WorkerCard";
 import { initialDemoState } from "../lib/demoState";
 import { formatMusd, formatUsd } from "../lib/format";
@@ -21,6 +23,10 @@ interface DashboardProps {
   account: string;
   onDisconnect: () => void;
 }
+
+const FAUCET_URL = "https://faucet.test.mezo.org/";
+// Minimum native BTC needed to cover gas on Mezo Testnet (gas is very cheap).
+const MIN_GAS_WEI = 100_000_000_000_000n; // 0.0001 BTC
 
 const proofLabels: Record<ProofType, string> = {
   fixture: "Fixture",
@@ -36,6 +42,12 @@ function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
+function formatBtcBalance(wei: bigint): string {
+  const whole = wei / 10n ** 18n;
+  const frac = (wei % 10n ** 18n).toString().padStart(18, "0").slice(0, 6);
+  return `${whole}.${frac}`;
+}
+
 export function Dashboard({ account, onDisconnect }: DashboardProps) {
   const [state, dispatch] = useReducer(demoReducer, initialDemoState);
   const [btcPrice, setBtcPrice] = useState<bigint | null>(null);
@@ -44,6 +56,15 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
     () => totalStreamingPerHour(state.workers),
     [state.workers],
   );
+
+  const { data: balance, isLoading: balanceLoading } = useBalance({
+    address: account as `0x${string}`,
+  });
+
+  const gasWei = balance?.value ?? 0n;
+  const hasGas = !balanceLoading && gasWei >= MIN_GAS_WEI;
+  const gasChecked = !balanceLoading && balance !== undefined;
+  const insufficientGas = gasChecked && !hasGas;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -143,25 +164,63 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
           </div>
         </div>
 
+        {/* Gas / faucet gate */}
+        {insufficientGas && (
+          <div className="dash-faucet-banner" data-testid="faucet-banner">
+            <div className="dash-faucet-banner__icon">
+              <Droplet size={18} />
+            </div>
+            <div className="dash-faucet-banner__body">
+              <strong>You need testnet BTC for gas</strong>
+              <span>
+                Your wallet holds {formatBtcBalance(gasWei)} BTC. Claim free
+                testnet BTC before sending any transaction.
+              </span>
+            </div>
+            <a
+              className="dash-faucet-btn"
+              href={FAUCET_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Claim BTC
+              <ArrowRight size={15} />
+            </a>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="dash-actions">
           <button
             className="action-btn action-btn--primary"
             data-testid="start-streams"
             onClick={() => dispatch({ type: "start-streams" })}
+            disabled={insufficientGas}
+            title={
+              insufficientGas ? "Claim testnet BTC for gas first." : undefined
+            }
           >
-            <ArrowRight size={16} /> Start payroll streams
+            <ArrowRight size={16} />{" "}
+            {insufficientGas ? "Insufficient gas" : "Start payroll streams"}
           </button>
           <button
             className="action-btn action-btn--secondary"
             data-testid="repay-musd"
             onClick={() => dispatch({ type: "repay", amount: 2400 })}
+            disabled={insufficientGas}
+            title={
+              insufficientGas ? "Claim testnet BTC for gas first." : undefined
+            }
           >
             Repay 2,400 MUSD
           </button>
           <button
             className="action-btn action-btn--danger"
             onClick={() => dispatch({ type: "stress-btc", percentDrop: 18 })}
+            disabled={insufficientGas}
+            title={
+              insufficientGas ? "Claim testnet BTC for gas first." : undefined
+            }
           >
             <TrendingDown size={16} /> Stress BTC -18%
           </button>
@@ -186,6 +245,7 @@ export function Dashboard({ account, onDisconnect }: DashboardProps) {
             <WorkerCard
               key={worker.id}
               worker={worker}
+              gasBlocked={insufficientGas}
               onPause={() =>
                 dispatch({ type: "pause-worker", workerId: worker.id })
               }
