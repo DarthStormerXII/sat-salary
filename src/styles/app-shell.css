@@ -732,6 +732,121 @@
   }
 }
 
+/* ── Explorer Transactions ── */
+.explorer-txs {
+  margin-top: 2rem;
+}
+.explorer-txs__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+.explorer-txs__header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+.explorer-txs__count {
+  font-size: 0.75rem;
+  color: #888;
+}
+.explorer-txs__filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.explorer-txs__filter {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #aaa;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.explorer-txs__filter:hover {
+  border-color: #555;
+  color: #fff;
+}
+.explorer-txs__filter.is-active {
+  background: var(--filter-color, #d4a017);
+  border-color: var(--filter-color, #d4a017);
+  color: #000;
+  font-weight: 600;
+}
+.explorer-txs__empty {
+  color: #666;
+  font-size: 0.85rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+.explorer-txs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.explorer-tx-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: #151515;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.explorer-tx-row:hover {
+  background: #1c1c1c;
+}
+.explorer-tx-row__badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: #000;
+  flex-shrink: 0;
+  min-width: 58px;
+  text-align: center;
+}
+.explorer-tx-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.explorer-tx-row__label {
+  color: #eee;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.explorer-tx-row__detail {
+  color: #777;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.explorer-tx-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #555;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+.explorer-tx-row__meta a,
+.explorer-tx-row__meta svg {
+  color: #666;
+}
+
 /* ── App Shell Layout ── */
 .app-shell {
   display: flex;

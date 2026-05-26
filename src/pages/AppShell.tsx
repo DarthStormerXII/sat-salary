@@ -15,6 +15,7 @@ import { useAccount, useBalance, useDisconnect, useReadContract } from "wagmi";
 import { useBitcoinAccount } from "@mezo-org/passport";
 import { RealFlowPanel } from "../components/RealFlowPanel";
 import { ActivityFeed } from "../components/ActivityFeed";
+import { ExplorerTransactions } from "../components/ExplorerTransactions";
 import { OpenTroveForm } from "../components/app/OpenTroveForm";
 import { AddEmployeeForm } from "../components/app/AddEmployeeForm";
 import {
@@ -376,6 +377,7 @@ export function AppShell() {
                 PriceFeed →
               </a>
             </div>
+            <ExplorerTransactions />
           </div>
         )}
         {activeTab === "activity" && <ActivityFeed />}
