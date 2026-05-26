@@ -122,7 +122,11 @@ export function OpenTroveForm({
               <button
                 className="onboarding__next"
                 onClick={() => setStep(1)}
-                disabled={!btcNum || btcNum > btcBalanceNum}
+                disabled={
+                  !btcNum ||
+                  btcNum > btcBalanceNum ||
+                  (btcPrice !== null && maxSafeMusd < minMusd)
+                }
               >
                 Continue <ArrowRight size={14} />
               </button>
