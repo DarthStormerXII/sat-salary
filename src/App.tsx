@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
@@ -5,10 +6,24 @@ import { LandingPage } from "./pages/LandingPage";
 import { AppShell } from "./pages/AppShell";
 
 export default function App() {
-  const { address, isConnected, isConnecting } = useAccount();
+  const { address, isConnected, isConnecting, isReconnecting } = useAccount();
   const { openConnectModal } = useConnectModal();
 
+  const [connectTimeout, setConnectTimeout] = useState(false);
+
+  useEffect(() => {
+    if (!isConnecting && !isReconnecting) {
+      setConnectTimeout(false);
+      return;
+    }
+    const timer = setTimeout(() => setConnectTimeout(true), 4000);
+    return () => clearTimeout(timer);
+  }, [isConnecting, isReconnecting]);
+
+  const showConnecting = (isConnecting || isReconnecting) && !connectTimeout;
+
   function handleConnect() {
+    setConnectTimeout(false);
     openConnectModal?.();
   }
 
@@ -32,7 +47,7 @@ export default function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <LandingPage onConnect={handleConnect} connecting={isConnecting} />
+          <LandingPage onConnect={handleConnect} connecting={showConnecting} />
         </motion.div>
       )}
     </AnimatePresence>
