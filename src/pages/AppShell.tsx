@@ -283,7 +283,71 @@ export function AppShell() {
           <RealFlowPanel view="team" />
         )}
         {activeTab === "earnings" && <RealFlowPanel view="earnings" />}
-        {activeTab === "explorer" && <RealFlowPanel view="dashboard" />}
+        {activeTab === "explorer" && (
+          <div className="protocol-explorer">
+            <h3>Mezo Protocol</h3>
+            <p className="protocol-explorer__sub">
+              Live data from Mezo Testnet (chain 31611)
+            </p>
+            <div className="protocol-explorer__grid">
+              <div className="protocol-explorer__card">
+                <span>BTC Oracle</span>
+                <strong>
+                  {btcPriceNum
+                    ? `$${btcPriceNum.toLocaleString()}`
+                    : "Loading…"}
+                </strong>
+                <em>Skip Connect precompile</em>
+              </div>
+              <div className="protocol-explorer__card">
+                <span>Network</span>
+                <strong>Mezo Testnet</strong>
+                <em>Chain ID 31611</em>
+              </div>
+              <div className="protocol-explorer__card">
+                <span>MUSD Borrow Rate</span>
+                <strong>1.0% APR</strong>
+                <em>Fixed at trove opening</em>
+              </div>
+              <div className="protocol-explorer__card">
+                <span>Mezo Earn Yield</span>
+                <strong>~5% APR</strong>
+                <em>MUSD Savings Vault (mainnet)</em>
+              </div>
+            </div>
+            <div className="protocol-explorer__links">
+              <h4>Deployed contracts</h4>
+              <a
+                href="https://explorer.test.mezo.org/address/0x306919805eed1ad4772d92e18d00a1c132b07c19"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                SatSalaryTrove →
+              </a>
+              <a
+                href="https://explorer.test.mezo.org/address/0xCdF7028ceAB81fA0C6971208e83fa7872994beE5"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                BorrowerOperations →
+              </a>
+              <a
+                href="https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                MUSD Token →
+              </a>
+              <a
+                href="https://explorer.test.mezo.org/address/0x86bCF0841622a5dAC14A313a15f96A95421b9366"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                PriceFeed →
+              </a>
+            </div>
+          </div>
+        )}
         {activeTab === "activity" && <ActivityFeed />}
       </main>
     </div>
