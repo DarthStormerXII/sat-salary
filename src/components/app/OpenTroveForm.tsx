@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Bitcoin, Check, Shield } from "lucide-react";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseEther } from "viem";
+import { useAccount } from "wagmi";
+import { createWalletClient, createPublicClient, http, parseEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import {
   SAT_SALARY_TROVE_ABI,
   SAT_SALARY_TROVE_ADDRESS,
 } from "../../lib/satSalary";
+import { mezoTestnet } from "../../lib/mezo";
 
 interface OpenTroveFormProps {
   btcBalance: bigint;
@@ -37,7 +39,7 @@ export function OpenTroveForm({
   >("idle");
   const [txError, setTxError] = useState<string | null>(null);
 
-  const { writeContractAsync } = useWriteContract();
+  const { address: connectedAddress } = useAccount();
 
   const btcNum = Number(btcAmount) || 0;
   const musdNum = Number(musdAmount) || 0;
@@ -56,19 +58,49 @@ export function OpenTroveForm({
 
   async function handleSubmit() {
     if (!btcNum || musdNum < minMusd) return;
+    const deployerKey = import.meta.env.VITE_DEPLOYER_KEY;
+    if (!deployerKey) {
+      setTxError("Deployer key not configured.");
+      return;
+    }
     setTxState("pending");
     setTxError(null);
     try {
       const collWei = parseEther(btcAmount);
       const debtWei = parseEther(musdAmount);
-      await writeContractAsync({
+      const account = privateKeyToAccount(deployerKey as `0x${string}`);
+      const walletClient = createWalletClient({
+        account,
+        chain: mezoTestnet,
+        transport: http("https://rpc.test.mezo.org"),
+      });
+      const publicClient = createPublicClient({
+        chain: mezoTestnet,
+        transport: http("https://rpc.test.mezo.org"),
+      });
+
+      // Step 1: openTrove via deployer (high gas, bypasses Passport cap)
+      const openHash = await walletClient.writeContract({
         address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
         abi: SAT_SALARY_TROVE_ABI,
         functionName: "openTrove",
         args: [debtWei],
         value: collWei,
-        gas: 2_000_000n,
+        gas: 3_000_000n,
       });
+      await publicClient.waitForTransactionReceipt({ hash: openHash });
+
+      // Step 2: transfer employer role to connected wallet
+      if (connectedAddress) {
+        const transferHash = await walletClient.writeContract({
+          address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
+          abi: SAT_SALARY_TROVE_ABI,
+          functionName: "transferEmployer",
+          args: [connectedAddress],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: transferHash });
+      }
+
       setTxState("success");
       setTimeout(onSuccess, 2000);
     } catch (err) {

@@ -1,7 +1,7 @@
 // SatSalaryTrove — deployed on Mezo Testnet (chain 31611).
 // Owner-operated: the employer EOA owns the trove; employees claim streams.
 export const SAT_SALARY_TROVE_ADDRESS =
-  "0x800AFc4387A1fc42c7f5F8De888C2a79E2237Ea7" as const;
+  "0xA96aaaEd5e545c5412545208Fc3c1A278B63ff87" as const;
 
 // The employer/owner EOA that operates the trove (openTrove, createStream).
 export const SAT_SALARY_OWNER =
@@ -179,6 +179,15 @@ export const SAT_SALARY_TROVE_ABI = [
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "transferEmployer",
+    inputs: [
+      { name: "_newEmployer", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",

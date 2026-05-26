@@ -74,6 +74,11 @@ contract SatSalaryTrove {
 
     receive() external payable {}
 
+    function transferEmployer(address _newEmployer) external onlyEmployer {
+        require(_newEmployer != address(0), "ZERO_ADDR");
+        employer = _newEmployer;
+    }
+
     // --- Trove management ---
 
     function openTrove(uint256 _musdAmount) external payable {
