@@ -116,6 +116,18 @@ export function OpenTroveForm({
                   ? ` · $${(btcNum * btcPrice).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
                   : ""}
               </span>
+              {btcNum > 0 && btcPrice !== null && maxSafeMusd < minMusd && (
+                <span className="trove-form__warn">
+                  Minimum ~{((minMusd * 2.5) / btcPrice).toFixed(3)} BTC
+                  required. Mezo protocol enforces 1,800 MUSD minimum debt at
+                  150%+ health.
+                </span>
+              )}
+              {btcNum > 0 && btcNum > btcBalanceNum && (
+                <span className="trove-form__warn">
+                  Exceeds your available balance.
+                </span>
+              )}
             </div>
             <div className="trove-form__actions">
               <div />
