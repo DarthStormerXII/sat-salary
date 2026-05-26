@@ -239,7 +239,7 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
   const showTreasury = view === "dashboard" || view === "treasury";
   const showStreams =
     view === "dashboard" || (view === "team" && isOwner) || view === "earnings";
-  const showOwnerControls = view === "team" && isOwner;
+  const showOwnerControls = false; // handled by AddEmployeeForm in AppShell
   const showOnlyMine = view === "earnings";
   const showTeamEmpty = view === "team" && !isOwner;
 

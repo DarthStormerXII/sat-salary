@@ -566,6 +566,30 @@
   color: var(--red);
 }
 
+.trove-form__txlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.trove-form__txlist a {
+  display: block;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent);
+  font-size: 13px;
+  font-family: "SF Mono", monospace;
+  transition: background 0.15s ease;
+}
+
+.trove-form__txlist a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  opacity: 1;
+}
+
 .trove-form__error {
   padding: 10px 14px;
   border-radius: var(--radius-sm);

@@ -54,8 +54,14 @@ export function OpenTroveForm({
     | "error"
   >("idle");
   const [txError, setTxError] = useState<string | null>(null);
+  const [txHashes, setTxHashes] = useState<{
+    send?: string;
+    open?: string;
+    transfer?: string;
+  }>({});
 
   const { address: connectedAddress } = useAccount();
+  const explorerBase = "https://explorer.test.mezo.org";
 
   const btcNum = Number(btcAmount) || 0;
   const musdNum = Number(musdAmount) || 0;
@@ -97,12 +103,15 @@ export function OpenTroveForm({
     });
 
     try {
+      setTxHashes({});
+
       // Step 1: User sends BTC to deployer via connected wallet (OKX Passport)
       setTxState("sending-btc");
       const sendHash = await sendTransactionAsync({
         to: deployerAccount.address,
         value: collWei,
       });
+      setTxHashes((prev) => ({ ...prev, send: sendHash }));
       await publicClient.waitForTransactionReceipt({ hash: sendHash });
 
       // Step 2: Deployer opens trove with the received BTC (high gas, bypasses Passport cap)
@@ -115,6 +124,7 @@ export function OpenTroveForm({
         value: collWei,
         gas: 3_000_000n,
       });
+      setTxHashes((prev) => ({ ...prev, open: openHash }));
       await publicClient.waitForTransactionReceipt({ hash: openHash });
 
       // Step 3: Deployer transfers employer role to connected wallet
@@ -125,10 +135,10 @@ export function OpenTroveForm({
         functionName: "transferEmployer",
         args: [connectedAddress],
       });
+      setTxHashes((prev) => ({ ...prev, transfer: transferHash }));
       await publicClient.waitForTransactionReceipt({ hash: transferHash });
 
       setTxState("success");
-      setTimeout(onSuccess, 2000);
     } catch (err) {
       setTxState("error");
       setTxError(
@@ -299,6 +309,42 @@ export function OpenTroveForm({
                   Your payroll trove is live on Mezo. You can now add team
                   members and start streaming MUSD.
                 </p>
+                <div className="trove-form__txlist">
+                  {txHashes.send && (
+                    <a
+                      href={`${explorerBase}/tx/${txHashes.send}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      BTC Transfer → Explorer ↗
+                    </a>
+                  )}
+                  {txHashes.open && (
+                    <a
+                      href={`${explorerBase}/tx/${txHashes.open}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open Trove → Explorer ↗
+                    </a>
+                  )}
+                  {txHashes.transfer && (
+                    <a
+                      href={`${explorerBase}/tx/${txHashes.transfer}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Transfer Employer → Explorer ↗
+                    </a>
+                  )}
+                </div>
+                <button
+                  className="onboarding__next onboarding__next--go"
+                  onClick={onSuccess}
+                  style={{ marginTop: 20, width: "100%" }}
+                >
+                  Go to Dashboard <ArrowRight size={14} />
+                </button>
               </>
             ) : (
               <>
