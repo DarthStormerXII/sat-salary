@@ -44,10 +44,15 @@ export function OpenTroveForm({
   const btcBalanceNum = Number(btcBalance / 10n ** 12n) / 1e6;
 
   const collUsd = btcPrice ? btcNum * btcPrice : 0;
-  const healthPct = musdNum > 0 && collUsd > 0 ? (collUsd / musdNum) * 100 : 0;
+  const gasDeposit = 200; // Mezo adds 200 MUSD gas deposit to total debt
+  const totalDebt = musdNum + gasDeposit;
+  const healthPct =
+    totalDebt > 0 && collUsd > 0 ? (collUsd / totalDebt) * 100 : 0;
   const isHealthy = healthPct >= 150;
   const minMusd = 1800;
-  const maxSafeMusd = btcPrice ? Math.floor((btcNum * btcPrice) / 1.5) : 0;
+  const maxSafeMusd = btcPrice
+    ? Math.floor((btcNum * btcPrice) / 1.5 - gasDeposit)
+    : 0;
 
   async function handleSubmit() {
     if (!btcNum || musdNum < minMusd) return;
@@ -118,7 +123,8 @@ export function OpenTroveForm({
               </span>
               {btcNum > 0 && btcPrice !== null && maxSafeMusd < minMusd && (
                 <span className="trove-form__warn">
-                  Minimum ~{((minMusd * 1.5) / btcPrice).toFixed(3)} BTC
+                  Minimum ~
+                  {(((minMusd + gasDeposit) * 1.5) / btcPrice).toFixed(3)} BTC
                   required. Mezo protocol enforces 1,800 MUSD minimum debt at
                   150%+ health.
                 </span>
