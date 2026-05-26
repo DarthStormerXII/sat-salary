@@ -97,6 +97,16 @@ code {
   border-radius: var(--radius-lg);
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 .eyebrow {
   font-size: 12px;
   font-weight: 600;

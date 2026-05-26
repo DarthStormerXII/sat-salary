@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Bitcoin, Check, Shield } from "lucide-react";
-import { useAccount } from "wagmi";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bitcoin,
+  Check,
+  Shield,
+  Loader2,
+} from "lucide-react";
+import {
+  useAccount,
+  useSendTransaction,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { createWalletClient, createPublicClient, http, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
@@ -35,7 +46,12 @@ export function OpenTroveForm({
   const [btcAmount, setBtcAmount] = useState("");
   const [musdAmount, setMusdAmount] = useState("");
   const [txState, setTxState] = useState<
-    "idle" | "pending" | "success" | "error"
+    | "idle"
+    | "sending-btc"
+    | "opening-trove"
+    | "transferring"
+    | "success"
+    | "error"
   >("idle");
   const [txError, setTxError] = useState<string | null>(null);
 
@@ -56,31 +72,42 @@ export function OpenTroveForm({
     ? Math.floor((btcNum * btcPrice) / 1.5 - gasDeposit)
     : 0;
 
+  const { sendTransactionAsync } = useSendTransaction();
+
   async function handleSubmit() {
-    if (!btcNum || musdNum < minMusd) return;
+    if (!btcNum || musdNum < minMusd || !connectedAddress) return;
     const deployerKey = import.meta.env.VITE_DEPLOYER_KEY;
     if (!deployerKey) {
       setTxError("Deployer key not configured.");
       return;
     }
-    setTxState("pending");
     setTxError(null);
-    try {
-      const collWei = parseEther(btcAmount);
-      const debtWei = parseEther(musdAmount);
-      const account = privateKeyToAccount(deployerKey as `0x${string}`);
-      const walletClient = createWalletClient({
-        account,
-        chain: mezoTestnet,
-        transport: http("https://rpc.test.mezo.org"),
-      });
-      const publicClient = createPublicClient({
-        chain: mezoTestnet,
-        transport: http("https://rpc.test.mezo.org"),
-      });
 
-      // Step 1: openTrove via deployer (high gas, bypasses Passport cap)
-      const openHash = await walletClient.writeContract({
+    const collWei = parseEther(btcAmount);
+    const debtWei = parseEther(musdAmount);
+    const deployerAccount = privateKeyToAccount(deployerKey as `0x${string}`);
+    const deployerWallet = createWalletClient({
+      account: deployerAccount,
+      chain: mezoTestnet,
+      transport: http("https://rpc.test.mezo.org"),
+    });
+    const publicClient = createPublicClient({
+      chain: mezoTestnet,
+      transport: http("https://rpc.test.mezo.org"),
+    });
+
+    try {
+      // Step 1: User sends BTC to deployer via connected wallet (OKX Passport)
+      setTxState("sending-btc");
+      const sendHash = await sendTransactionAsync({
+        to: deployerAccount.address,
+        value: collWei,
+      });
+      await publicClient.waitForTransactionReceipt({ hash: sendHash });
+
+      // Step 2: Deployer opens trove with the received BTC (high gas, bypasses Passport cap)
+      setTxState("opening-trove");
+      const openHash = await deployerWallet.writeContract({
         address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
         abi: SAT_SALARY_TROVE_ABI,
         functionName: "openTrove",
@@ -90,16 +117,15 @@ export function OpenTroveForm({
       });
       await publicClient.waitForTransactionReceipt({ hash: openHash });
 
-      // Step 2: transfer employer role to connected wallet
-      if (connectedAddress) {
-        const transferHash = await walletClient.writeContract({
-          address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
-          abi: SAT_SALARY_TROVE_ABI,
-          functionName: "transferEmployer",
-          args: [connectedAddress],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: transferHash });
-      }
+      // Step 3: Deployer transfers employer role to connected wallet
+      setTxState("transferring");
+      const transferHash = await deployerWallet.writeContract({
+        address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
+        abi: SAT_SALARY_TROVE_ABI,
+        functionName: "transferEmployer",
+        args: [connectedAddress],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: transferHash });
 
       setTxState("success");
       setTimeout(onSuccess, 2000);
@@ -313,17 +339,35 @@ export function OpenTroveForm({
                   <button
                     className="onboarding__back"
                     onClick={() => setStep(1)}
-                    disabled={txState === "pending"}
+                    disabled={txState !== "idle" && txState !== "error"}
                   >
                     <ArrowLeft size={14} /> Back
                   </button>
                   <button
                     className="onboarding__next onboarding__next--go"
                     onClick={handleSubmit}
-                    disabled={txState === "pending"}
+                    disabled={txState !== "idle" && txState !== "error"}
                   >
-                    {txState === "pending" ? "Confirming…" : "Open Treasury"}
-                    <ArrowRight size={14} />
+                    {txState === "sending-btc" && (
+                      <>
+                        <Loader2 size={14} className="spin" /> Sending BTC…
+                      </>
+                    )}
+                    {txState === "opening-trove" && (
+                      <>
+                        <Loader2 size={14} className="spin" /> Opening trove…
+                      </>
+                    )}
+                    {txState === "transferring" && (
+                      <>
+                        <Loader2 size={14} className="spin" /> Finalizing…
+                      </>
+                    )}
+                    {(txState === "idle" || txState === "error") && (
+                      <>
+                        Open Treasury <ArrowRight size={14} />
+                      </>
+                    )}
                   </button>
                 </div>
               </>
