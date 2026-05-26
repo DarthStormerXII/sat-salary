@@ -258,17 +258,11 @@ contract SatSalaryTrove {
         require(s.exists, "NO_STREAM");
     }
 
-    function _getHints(uint256 _debt, uint256 _coll) internal view returns (address upper, address lower) {
-        uint256 price = priceFeed.fetchPrice();
-        uint256 icr = (_coll * price) / _debt;
-        (address approxHint,,) = hintHelpers.getApproxHint(icr, 10, 42);
-        (upper, lower) = sortedTroves.findInsertPosition(icr, approxHint, approxHint);
+    function _getHints(uint256, uint256) internal pure returns (address upper, address lower) {
+        return (address(0), address(0));
     }
 
-    function _getCurrentHints() internal view returns (address upper, address lower) {
-        uint256 icr = healthFactor();
-        if (icr == type(uint256).max) return (address(0), address(0));
-        (address approxHint,,) = hintHelpers.getApproxHint(icr, 10, 42);
-        (upper, lower) = sortedTroves.findInsertPosition(icr, approxHint, approxHint);
+    function _getCurrentHints() internal pure returns (address upper, address lower) {
+        return (address(0), address(0));
     }
 }
