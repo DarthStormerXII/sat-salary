@@ -44,9 +44,10 @@ export function OpenTroveForm({
   const btcBalanceNum = Number(btcBalance / 10n ** 12n) / 1e6;
 
   const collUsd = btcPrice ? btcNum * btcPrice : 0;
-  const healthPct = musdNum > 0 ? (collUsd / musdNum) * 100 : 0;
+  const healthPct = musdNum > 0 && collUsd > 0 ? (collUsd / musdNum) * 100 : 0;
   const isHealthy = healthPct >= 150;
   const minMusd = 1800;
+  const maxSafeMusd = btcPrice ? Math.floor((btcNum * btcPrice) / 2.5) : 0;
 
   async function handleSubmit() {
     if (!btcNum || musdNum < minMusd) return;
@@ -136,8 +137,15 @@ export function OpenTroveForm({
             </div>
             <h3>How much MUSD to borrow?</h3>
             <p>
-              This becomes your payroll treasury. Minimum 1,800 MUSD. Keep
-              health above 150% to avoid liquidation.
+              Your {btcNum} BTC collateral
+              {btcPrice
+                ? ` (~$${collUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })})`
+                : ""}
+              {maxSafeMusd >= minMusd
+                ? ` can safely borrow up to ${maxSafeMusd.toLocaleString()} MUSD.`
+                : maxSafeMusd > 0
+                  ? ` is not enough for the minimum ${minMusd.toLocaleString()} MUSD borrow. Add more BTC.`
+                  : ". Loading oracle price…"}
             </p>
             <div className="trove-form__field">
               <label>MUSD to borrow</label>
