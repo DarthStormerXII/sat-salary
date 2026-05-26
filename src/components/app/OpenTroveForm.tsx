@@ -116,25 +116,13 @@ export function OpenTroveForm({
                   ? ` · $${(btcNum * btcPrice).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
                   : ""}
               </span>
-              {btcNum > 0 && maxSafeMusd < minMusd && btcPrice && (
-                <span className="trove-form__warn">
-                  Minimum ~
-                  {btcPrice ? ((minMusd * 2.5) / btcPrice).toFixed(3) : "0.035"}{" "}
-                  BTC required (Mezo protocol enforces 1,800 MUSD minimum debt
-                  at 150%+ health).
-                </span>
-              )}
             </div>
             <div className="trove-form__actions">
               <div />
               <button
                 className="onboarding__next"
                 onClick={() => setStep(1)}
-                disabled={
-                  !btcNum ||
-                  btcNum > btcBalanceNum ||
-                  (btcPrice !== null && maxSafeMusd < minMusd)
-                }
+                disabled={!btcNum || btcNum > btcBalanceNum}
               >
                 Continue <ArrowRight size={14} />
               </button>
