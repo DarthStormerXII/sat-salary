@@ -67,6 +67,7 @@ export function OpenTroveForm({
         functionName: "openTrove",
         args: [debtWei],
         value: collWei,
+        gas: 2_000_000n,
       });
       setTxState("success");
       setTimeout(onSuccess, 2000);
