@@ -13,6 +13,7 @@ contract SatSalaryTrove {
     ISortedTroves public immutable sortedTroves;
 
     address public immutable owner;
+    address public employer; // set on first openTrove — the wallet that manages the trove
 
     uint256 public constant MIN_COLLATERAL_RATIO = 1.5e18; // 150% — safe buffer above 110% liquidation
     uint256 public constant REBALANCE_THRESHOLD = 1.8e18; // auto-rebalance triggers below 180%
@@ -49,6 +50,11 @@ contract SatSalaryTrove {
         _;
     }
 
+    modifier onlyEmployer() {
+        require(msg.sender == employer, "NOT_EMPLOYER");
+        _;
+    }
+
     constructor(
         address _borrowerOps,
         address _troveManager,
@@ -70,10 +76,12 @@ contract SatSalaryTrove {
 
     // --- Trove management ---
 
-    function openTrove(uint256 _musdAmount) external payable onlyOwner {
+    function openTrove(uint256 _musdAmount) external payable {
+        require(employer == address(0), "TROVE_EXISTS");
         require(msg.value > 0, "NO_COLLATERAL");
         require(_musdAmount >= 1800e18, "MIN_DEBT_1800");
 
+        employer = msg.sender;
         (address upper, address lower) = _getHints(_musdAmount, msg.value);
         borrowerOps.openTrove{value: msg.value}(_musdAmount, upper, lower);
 
@@ -81,14 +89,14 @@ contract SatSalaryTrove {
         emit TroveOpened(msg.value, _musdAmount, hf);
     }
 
-    function addCollateral() external payable onlyOwner {
+    function addCollateral() external payable onlyEmployer {
         require(msg.value > 0, "NO_COLLATERAL");
         (address upper, address lower) = _getCurrentHints();
         borrowerOps.addColl{value: msg.value}(upper, lower);
         emit CollateralAdded(msg.value, healthFactor());
     }
 
-    function repayDebt(uint256 _amount) external onlyOwner {
+    function repayDebt(uint256 _amount) external onlyEmployer {
         require(_amount > 0, "ZERO_REPAY");
         musd.approve(address(borrowerOps), _amount);
         (address upper, address lower) = _getCurrentHints();
@@ -96,7 +104,7 @@ contract SatSalaryTrove {
         emit DebtRepaid(_amount, troveDebt());
     }
 
-    function fundPayroll(uint256 _amount) external onlyOwner {
+    function fundPayroll(uint256 _amount) external onlyEmployer {
         require(_amount > 0, "ZERO_FUND");
         require(musd.transferFrom(msg.sender, address(this), _amount), "MUSD_TRANSFER");
         payrollReserve += _amount;
@@ -106,7 +114,7 @@ contract SatSalaryTrove {
     /// @notice Allocate MUSD already held by this contract (e.g. borrowed via
     /// openTrove) into the payroll reserve so streams can pay it out. Keeps any
     /// unallocated balance free as a rebalance buffer.
-    function allocateToPayroll(uint256 _amount) external onlyOwner {
+    function allocateToPayroll(uint256 _amount) external onlyEmployer {
         require(_amount > 0, "ZERO_FUND");
         require(unallocatedMusd() >= _amount, "INSUFFICIENT_MUSD");
         payrollReserve += _amount;
@@ -129,7 +137,7 @@ contract SatSalaryTrove {
 
     // --- Payroll streams ---
 
-    function createStream(address _payee, uint256 _ratePerSecond) external onlyOwner returns (uint256 streamId) {
+    function createStream(address _payee, uint256 _ratePerSecond) external onlyEmployer returns (uint256 streamId) {
         require(_payee != address(0), "ZERO_PAYEE");
         require(_ratePerSecond > 0, "ZERO_RATE");
 
@@ -141,7 +149,7 @@ contract SatSalaryTrove {
         emit StreamCreated(streamId, _payee, _ratePerSecond);
     }
 
-    function pauseStream(uint256 _streamId) external onlyOwner {
+    function pauseStream(uint256 _streamId) external onlyEmployer {
         Stream storage s = _stream(_streamId);
         _accrue(s);
         totalStreamRate -= s.ratePerSecond;
@@ -149,7 +157,7 @@ contract SatSalaryTrove {
         emit StreamPaused(_streamId);
     }
 
-    function resumeStream(uint256 _streamId) external onlyOwner {
+    function resumeStream(uint256 _streamId) external onlyEmployer {
         Stream storage s = _stream(_streamId);
         require(s.paused, "NOT_PAUSED");
         s.paused = false;

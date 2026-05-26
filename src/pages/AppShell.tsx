@@ -23,7 +23,6 @@ import {
   type UserProfile,
 } from "../components/app/OnboardingFlow";
 import {
-  SAT_SALARY_OWNER,
   SAT_SALARY_TROVE_ABI,
   SAT_SALARY_TROVE_ADDRESS,
 } from "../lib/satSalary";
@@ -76,8 +75,16 @@ export function AppShell() {
     address: address,
   });
 
+  const { data: employerAddr } = useReadContract({
+    address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
+    abi: SAT_SALARY_TROVE_ABI,
+    functionName: "employer",
+    query: { refetchInterval: 15000 },
+  });
   const isOwner =
-    !!address && address.toLowerCase() === SAT_SALARY_OWNER.toLowerCase();
+    !!address &&
+    !!employerAddr &&
+    (employerAddr as string).toLowerCase() === address.toLowerCase();
 
   const gasWei = balance?.value ?? 0n;
   const gasChecked = !balanceLoading && balance !== undefined;

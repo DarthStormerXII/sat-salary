@@ -10,7 +10,6 @@ import { ArrowUpRight, Coins, Plus, Wallet } from "lucide-react";
 import {
   SAT_SALARY_TROVE_ABI,
   SAT_SALARY_TROVE_ADDRESS,
-  SAT_SALARY_OWNER,
   INTEREST_RATE_MANAGER,
   INTEREST_RATE_MANAGER_ABI,
   MEZO_EARN_APR_BPS,
@@ -52,8 +51,15 @@ interface RealFlowPanelProps {
 
 export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
   const { address } = useAccount();
+  const { data: employerAddr } = useReadContract({
+    ...TROVE,
+    functionName: "employer",
+    query: { refetchInterval: 15000 },
+  });
   const isOwner =
-    !!address && address.toLowerCase() === SAT_SALARY_OWNER.toLowerCase();
+    !!address &&
+    !!employerAddr &&
+    (employerAddr as string).toLowerCase() === address.toLowerCase();
 
   // --- Live trove + payroll reads ---
   const { data: core, refetch: refetchCore } = useReadContracts({
