@@ -1,0 +1,8 @@
+name = "sat-salary-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mezo-satsalary-db"
+database_id = "6027c0ed-30ba-48b4-babd-d19c373fa12c"

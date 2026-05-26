@@ -27,6 +27,10 @@ import {
   SAT_SALARY_TROVE_ADDRESS,
 } from "../lib/satSalary";
 import { fetchBtcPrice } from "../lib/mezo";
+import {
+  fetchProfile as fetchProfileRemote,
+  saveProfileRemote,
+} from "../lib/profileApi";
 
 type Tab = "dashboard" | "team" | "earnings" | "explorer" | "activity";
 
@@ -81,14 +85,26 @@ export function AppShell() {
   const [profile, setProfile] = useState<UserProfile | null>(() =>
     address ? loadProfile(address) : null,
   );
+  const [profileLoading, setProfileLoading] = useState(!profile && !!address);
   const [btcPriceNum, setBtcPriceNum] = useState<number | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   useEffect(() => {
-    if (address && !profile) {
-      const saved = loadProfile(address);
-      if (saved) setProfile(saved);
+    if (!address || profile) return;
+    const local = loadProfile(address);
+    if (local) {
+      setProfile(local);
+      setProfileLoading(false);
+      return;
     }
+    setProfileLoading(true);
+    fetchProfileRemote(address).then((remote) => {
+      if (remote) {
+        setProfile(remote);
+        saveProfile(address, remote);
+      }
+      setProfileLoading(false);
+    });
   }, [address, profile]);
 
   useEffect(() => {
@@ -108,8 +124,22 @@ export function AppShell() {
 
   function handleOnboardingComplete(p: UserProfile) {
     setProfile(p);
-    if (address) saveProfile(address, p);
+    if (address) {
+      saveProfile(address, p);
+      saveProfileRemote(address, p);
+    }
     setActiveTab("dashboard");
+  }
+
+  if (profileLoading) {
+    return (
+      <div
+        className="app-shell"
+        style={{ display: "grid", placeItems: "center" }}
+      >
+        <span style={{ color: "#999" }}>Loading profile…</span>
+      </div>
+    );
   }
 
   if (!profile) {
