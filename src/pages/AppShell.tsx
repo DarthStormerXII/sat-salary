@@ -11,15 +11,22 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect, useReadContract } from "wagmi";
 import { useBitcoinAccount } from "@mezo-org/passport";
 import { RealFlowPanel } from "../components/RealFlowPanel";
 import { ActivityFeed } from "../components/ActivityFeed";
+import { OpenTroveForm } from "../components/app/OpenTroveForm";
+import { AddEmployeeForm } from "../components/app/AddEmployeeForm";
 import {
   OnboardingFlow,
   type UserProfile,
 } from "../components/app/OnboardingFlow";
-import { SAT_SALARY_OWNER } from "../lib/satSalary";
+import {
+  SAT_SALARY_OWNER,
+  SAT_SALARY_TROVE_ABI,
+  SAT_SALARY_TROVE_ADDRESS,
+} from "../lib/satSalary";
+import { fetchBtcPrice } from "../lib/mezo";
 
 type Tab = "dashboard" | "team" | "earnings" | "explorer" | "activity";
 
@@ -74,6 +81,8 @@ export function AppShell() {
   const [profile, setProfile] = useState<UserProfile | null>(() =>
     address ? loadProfile(address) : null,
   );
+  const [btcPriceNum, setBtcPriceNum] = useState<number | null>(null);
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   useEffect(() => {
     if (address && !profile) {
@@ -81,6 +90,19 @@ export function AppShell() {
       if (saved) setProfile(saved);
     }
   }, [address, profile]);
+
+  useEffect(() => {
+    fetchBtcPrice().then((p) => setBtcPriceNum(Number(p / 10n ** 18n)));
+  }, []);
+
+  // Detect if the connected wallet has an active trove
+  const { data: troveColl, refetch: refetchTrove } = useReadContract({
+    address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
+    abi: SAT_SALARY_TROVE_ABI,
+    functionName: "troveColl",
+    query: { refetchInterval: 15000 },
+  });
+  const hasTrove = !!troveColl && (troveColl as bigint) > 0n;
 
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
@@ -206,46 +228,60 @@ export function AppShell() {
         )}
 
         {activeTab === "dashboard" &&
-          (isOwner ? (
+          role === "employer" &&
+          (isOwner && hasTrove ? (
             <RealFlowPanel view="treasury" />
           ) : (
             <div className="empty-dashboard">
-              <div className="empty-dashboard__card">
-                <div className="empty-dashboard__icon">
-                  {role === "employer" ? (
-                    <Plus size={28} />
-                  ) : (
-                    <Wallet size={28} />
-                  )}
-                </div>
-                <h3>
-                  {role === "employer"
-                    ? "Set up your payroll treasury"
-                    : "No salary streams yet"}
-                </h3>
-                <p>
-                  {role === "employer"
-                    ? "Post BTC as collateral, borrow MUSD, and start streaming payroll to your team. Your Bitcoin stays on the balance sheet."
-                    : "Your employer hasn't added you to a payroll stream yet. Share your wallet address with them to get started."}
-                </p>
-                {role === "employer" && (
-                  <button
-                    className="empty-dashboard__cta"
-                    onClick={() => setActiveTab("team")}
-                  >
-                    Open Treasury <ArrowRight size={16} />
-                  </button>
-                )}
-                {role === "employee" && address && (
-                  <div className="empty-dashboard__addr">
-                    <span>Your address</span>
-                    <code>{address}</code>
-                  </div>
-                )}
-              </div>
+              <OpenTroveForm
+                btcBalance={gasWei}
+                btcPrice={btcPriceNum}
+                onSuccess={() => refetchTrove()}
+              />
             </div>
           ))}
-        {activeTab === "team" && <RealFlowPanel view="team" />}
+        {activeTab === "dashboard" && role === "employee" && (
+          <div className="empty-dashboard">
+            <div className="empty-dashboard__card">
+              <div className="empty-dashboard__icon">
+                <Wallet size={28} />
+              </div>
+              <h3>No salary streams yet</h3>
+              <p>
+                Your employer hasn't added you to a payroll stream yet. Share
+                your wallet address with them to get started.
+              </p>
+              {address && (
+                <div className="empty-dashboard__addr">
+                  <span>Your address</span>
+                  <code>{address}</code>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {activeTab === "team" && isOwner && hasTrove && !showAddEmployee && (
+          <>
+            <RealFlowPanel view="team" />
+            <button
+              className="add-employee-cta"
+              onClick={() => setShowAddEmployee(true)}
+            >
+              <Plus size={16} /> Add Employee
+            </button>
+          </>
+        )}
+        {activeTab === "team" && isOwner && hasTrove && showAddEmployee && (
+          <AddEmployeeForm
+            onSuccess={() => {
+              setShowAddEmployee(false);
+            }}
+            onCancel={() => setShowAddEmployee(false)}
+          />
+        )}
+        {activeTab === "team" && (!isOwner || !hasTrove) && (
+          <RealFlowPanel view="team" />
+        )}
         {activeTab === "earnings" && <RealFlowPanel view="earnings" />}
         {activeTab === "explorer" && <RealFlowPanel view="dashboard" />}
         {activeTab === "activity" && <ActivityFeed />}

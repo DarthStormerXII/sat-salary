@@ -432,6 +432,224 @@
   padding: 0;
 }
 
+/* ── Open Trove Form ── */
+.trove-form {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.trove-form__progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.trove-form__step {
+  text-align: center;
+}
+
+.trove-form__step h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.trove-form__step > p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.trove-form__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.trove-form__field {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.trove-form__field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.trove-form__input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trove-form__input-row input {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 18px;
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.trove-form__input-row input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.trove-form__input-row input::placeholder {
+  color: var(--text-muted);
+}
+
+.trove-form__unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.trove-form__hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.trove-form__health-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.trove-form__health-preview span:first-child {
+  color: var(--text-muted);
+}
+
+.trove-form__health--ok {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.trove-form__health--bad {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.trove-form__health-label {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.trove-form__warn {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--red);
+}
+
+.trove-form__error {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--red-dim);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  color: var(--red);
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.trove-form__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* ── Add Employee Form ── */
+.add-employee {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 32px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.add-employee__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: var(--accent);
+}
+
+.add-employee__header h3 {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.add-employee__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-employee__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.add-employee__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.add-employee-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #050505;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.add-employee-cta:hover {
+  background: #e5a930;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .add-employee__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── App Shell Layout ── */
 .app-shell {
   display: flex;
