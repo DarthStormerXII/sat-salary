@@ -26,6 +26,24 @@ const TROVE = {
 const SECONDS_PER_MONTH = 30 * 24 * 3600;
 const explorerBase = mezoTestnet.blockExplorers.default.url;
 
+function getEmployeeName(address: string): string | null {
+  try {
+    const raw = localStorage.getItem(
+      `sat-salary-employee-${address.toLowerCase()}`,
+    );
+    if (raw) {
+      const data = JSON.parse(raw);
+      return data.name || null;
+    }
+  } catch {}
+  return null;
+}
+
+function fmtMonthly(ratePerSec: bigint): string {
+  const monthly = (Number(ratePerSec) * SECONDS_PER_MONTH) / 1e18;
+  return Math.round(monthly).toLocaleString();
+}
+
 function fmt(v: bigint | undefined, decimals = 2, unit = 18): string {
   if (v === undefined) return "—";
   const whole = v / 10n ** BigInt(unit);
@@ -419,12 +437,12 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
                     >
                       <div>
                         <span className="real-flow__payee">
-                          {s.payee.slice(0, 6)}…{s.payee.slice(-4)}
+                          {getEmployeeName(s.payee) ??
+                            `${s.payee.slice(0, 6)}…${s.payee.slice(-4)}`}
                           {mine && <em> (you)</em>}
                         </span>
                         <span className="real-flow__rate">
-                          {fmt(s.ratePerSecond * BigInt(SECONDS_PER_MONTH), 0)}{" "}
-                          MUSD/mo
+                          {fmtMonthly(s.ratePerSecond)} MUSD/mo
                           {s.paused && " · paused"}
                         </span>
                       </div>
