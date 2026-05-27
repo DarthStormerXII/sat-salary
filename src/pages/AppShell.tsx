@@ -36,8 +36,6 @@ type Tab = "dashboard" | "team" | "earnings" | "explorer" | "activity";
 
 const FAUCET_URL = "https://faucet.test.mezo.org/";
 const MIN_GAS_WEI = 100_000_000_000_000n;
-const PROFILE_STORAGE_KEY = "sat-salary-profile";
-
 function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
@@ -46,25 +44,6 @@ function formatBtcBalance(wei: bigint): string {
   const whole = wei / 10n ** 18n;
   const frac = (wei % 10n ** 18n).toString().padStart(18, "0").slice(0, 6);
   return `${whole}.${frac}`;
-}
-
-function loadProfile(address: string): UserProfile | null {
-  try {
-    const raw = localStorage.getItem(
-      `${PROFILE_STORAGE_KEY}-${address.toLowerCase()}`,
-    );
-    if (raw) return JSON.parse(raw) as UserProfile;
-  } catch {}
-  return null;
-}
-
-function saveProfile(address: string, profile: UserProfile) {
-  try {
-    localStorage.setItem(
-      `${PROFILE_STORAGE_KEY}-${address.toLowerCase()}`,
-      JSON.stringify(profile),
-    );
-  } catch {}
 }
 
 export function AppShell() {
@@ -90,27 +69,20 @@ export function AppShell() {
   const gasChecked = !balanceLoading && balance !== undefined;
   const insufficientGas = gasChecked && gasWei < MIN_GAS_WEI;
 
-  const [profile, setProfile] = useState<UserProfile | null>(() =>
-    address ? loadProfile(address) : null,
-  );
-  const [profileLoading, setProfileLoading] = useState(!profile && !!address);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(!!address);
   const [btcPriceNum, setBtcPriceNum] = useState<number | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   useEffect(() => {
-    if (!address || profile) return;
-    const local = loadProfile(address);
-    if (local) {
-      setProfile(local);
+    if (!address) return;
+    if (profile) {
       setProfileLoading(false);
       return;
     }
     setProfileLoading(true);
     fetchProfileRemote(address).then((remote) => {
-      if (remote) {
-        setProfile(remote);
-        saveProfile(address, remote);
-      }
+      if (remote) setProfile(remote);
       setProfileLoading(false);
     });
   }, [address, profile]);
@@ -133,7 +105,6 @@ export function AppShell() {
   function handleOnboardingComplete(p: UserProfile) {
     setProfile(p);
     if (address) {
-      saveProfile(address, p);
       saveProfileRemote(address, p);
     }
     setActiveTab("dashboard");

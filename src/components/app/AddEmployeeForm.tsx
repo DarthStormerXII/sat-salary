@@ -44,12 +44,19 @@ export function AddEmployeeForm({ onSuccess, onCancel }: AddEmployeeFormProps) {
         args: [address as `0x${string}`, rate],
       });
 
-      // Store name + role in localStorage (Cloudflare KV sync later)
+      // Store employee profile in Cloudflare
       try {
-        const key = `sat-salary-employee-${address.toLowerCase()}`;
-        localStorage.setItem(
-          key,
-          JSON.stringify({ name: name.trim(), role: role.trim() }),
+        await fetch(
+          `https://sat-salary-api.gabrielaxy.workers.dev/profile/${address.toLowerCase()}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role: "employee",
+              personName: name.trim(),
+              jobTitle: role.trim(),
+            }),
+          },
         );
       } catch {}
 

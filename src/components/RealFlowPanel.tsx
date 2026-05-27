@@ -26,18 +26,45 @@ const TROVE = {
 const SECONDS_PER_MONTH = 30 * 24 * 3600;
 const explorerBase = mezoTestnet.blockExplorers.default.url;
 
+const employeeCache: Record<string, { name: string; role?: string } | null> =
+  {};
+
+async function fetchEmployeeInfo(
+  addr: string,
+): Promise<{ name: string; role?: string } | null> {
+  const key = addr.toLowerCase();
+  if (key in employeeCache) return employeeCache[key];
+  try {
+    const res = await fetch(
+      `https://sat-salary-api.gabrielaxy.workers.dev/profile/${key}`,
+    );
+    if (!res.ok) {
+      employeeCache[key] = null;
+      return null;
+    }
+    const data = (await res.json()) as {
+      personName?: string;
+      jobTitle?: string;
+    };
+    if (!data.personName || data.personName === "_cleared") {
+      employeeCache[key] = null;
+      return null;
+    }
+    const info = { name: data.personName.trim(), role: data.jobTitle?.trim() };
+    employeeCache[key] = info;
+    return info;
+  } catch {
+    employeeCache[key] = null;
+    return null;
+  }
+}
+
 function getEmployeeInfo(
   address: string,
 ): { name: string; role?: string } | null {
-  try {
-    const raw = localStorage.getItem(
-      `sat-salary-employee-${address.toLowerCase()}`,
-    );
-    if (raw) {
-      const data = JSON.parse(raw);
-      return { name: data.name?.trim(), role: data.role?.trim() };
-    }
-  } catch {}
+  const key = address.toLowerCase();
+  if (key in employeeCache) return employeeCache[key];
+  fetchEmployeeInfo(address);
   return null;
 }
 
