@@ -26,14 +26,16 @@ const TROVE = {
 const SECONDS_PER_MONTH = 30 * 24 * 3600;
 const explorerBase = mezoTestnet.blockExplorers.default.url;
 
-function getEmployeeName(address: string): string | null {
+function getEmployeeInfo(
+  address: string,
+): { name: string; role?: string } | null {
   try {
     const raw = localStorage.getItem(
       `sat-salary-employee-${address.toLowerCase()}`,
     );
     if (raw) {
       const data = JSON.parse(raw);
-      return data.name || null;
+      return { name: data.name?.trim(), role: data.role?.trim() };
     }
   } catch {}
   return null;
@@ -47,6 +49,7 @@ function fmtMonthly(ratePerSec: bigint): string {
 function fmt(v: bigint | undefined, decimals = 2, unit = 18): string {
   if (v === undefined) return "—";
   const whole = v / 10n ** BigInt(unit);
+  if (decimals === 0) return whole.toLocaleString();
   const frac = (v % 10n ** BigInt(unit))
     .toString()
     .padStart(unit, "0")
@@ -119,7 +122,10 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
   const healthPct = health !== undefined ? Number(health) / 1e16 : null;
   const ratePerSec = n(totalRate) ?? 0;
   const reserveMusd = n(reserve) ?? 0;
-  const runwayDays = ratePerSec > 0 ? reserveMusd / (ratePerSec * 86400) : null;
+  const unallocatedMusd = n(unallocated) ?? 0;
+  const totalAvailableMusd = reserveMusd + unallocatedMusd;
+  const runwayDays =
+    ratePerSec > 0 ? totalAvailableMusd / (ratePerSec * 86400) : null;
   // Gauge thresholds: Mezo MCR (liquidation) 110%, contract REBALANCE_THRESHOLD
   // 180%, TARGET_RATIO_AFTER_REBALANCE 250%.
   const MCR = 110;
@@ -437,8 +443,19 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
                     >
                       <div>
                         <span className="real-flow__payee">
-                          {getEmployeeName(s.payee) ??
+                          {getEmployeeInfo(s.payee)?.name ||
                             `${s.payee.slice(0, 6)}…${s.payee.slice(-4)}`}
+                          {getEmployeeInfo(s.payee)?.role && (
+                            <em
+                              style={{
+                                color: "var(--text-muted)",
+                                fontWeight: 400,
+                              }}
+                            >
+                              {" · "}
+                              {getEmployeeInfo(s.payee)!.role}
+                            </em>
+                          )}
                           {mine && <em> (you)</em>}
                         </span>
                         <span className="real-flow__rate">
