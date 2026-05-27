@@ -10,7 +10,7 @@ import { mezoTestnet } from "../lib/mezo";
 
 // Block to start scanning from — just before the trove was deployed, so we
 // capture every event without scanning the whole chain.
-const FROM_BLOCK = 13300000n;
+const FROM_BLOCK = 13302900n;
 const explorerBase = mezoTestnet.blockExplorers.default.url;
 
 interface FeedItem {

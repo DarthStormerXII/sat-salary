@@ -8,7 +8,13 @@ export async function fetchProfile(
   try {
     const res = await fetch(`${API_BASE}/profile/${address.toLowerCase()}`);
     if (res.status === 204 || !res.ok) return null;
-    return (await res.json()) as UserProfile;
+    const data = (await res.json()) as UserProfile;
+    if (
+      (data as { personName?: string }).personName === "_cleared" ||
+      !(data as { personName?: string }).personName
+    )
+      return null;
+    return data;
   } catch {
     return null;
   }
