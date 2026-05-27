@@ -279,24 +279,7 @@ export function AppShell() {
             </div>
           ))}
         {activeTab === "dashboard" && role === "employee" && (
-          <div className="empty-dashboard">
-            <div className="empty-dashboard__card">
-              <div className="empty-dashboard__icon">
-                <Wallet size={28} />
-              </div>
-              <h3>No salary streams yet</h3>
-              <p>
-                Your employer hasn't added you to a payroll stream yet. Share
-                your wallet address with them to get started.
-              </p>
-              {address && (
-                <div className="empty-dashboard__addr">
-                  <span>Your address</span>
-                  <code>{address}</code>
-                </div>
-              )}
-            </div>
-          </div>
+          <RealFlowPanel view="earnings" />
         )}
         {activeTab === "team" && isOwner && hasTrove && !showAddEmployee && (
           <>
