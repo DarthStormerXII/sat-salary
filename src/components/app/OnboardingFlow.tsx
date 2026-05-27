@@ -6,7 +6,9 @@ import {
   Briefcase,
   Building2,
   Check,
+  Loader2,
   User,
+  UserX,
   Wallet,
 } from "lucide-react";
 
@@ -76,9 +78,46 @@ export function OnboardingFlow({
   const [industry, setIndustry] = useState("");
   const [jobTitle, setJobTitle] = useState("");
 
+  const [employeeLoading, setEmployeeLoading] = useState(false);
+  const [employeeNotFound, setEmployeeNotFound] = useState(false);
+  const [fetchedEmployee, setFetchedEmployee] = useState<{
+    personName: string;
+    jobTitle: string;
+  } | null>(null);
+
   function selectRole(r: Role) {
     setRole(r);
-    setStep(1);
+    if (r === "employer") {
+      setStep(1);
+    } else {
+      // Employee: fetch profile from Cloudflare
+      setEmployeeLoading(true);
+      setEmployeeNotFound(false);
+      fetch(
+        `https://sat-salary-api.gabrielaxy.workers.dev/profile/${walletAddress.toLowerCase()}`,
+      )
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { personName?: string; jobTitle?: string } | null) => {
+          if (data?.personName && data.personName !== "_cleared") {
+            setFetchedEmployee({
+              personName: data.personName,
+              jobTitle: data.jobTitle || "",
+            });
+            setPersonName(data.personName);
+            setJobTitle(data.jobTitle || "");
+            setStep(1); // confirmation step
+          } else {
+            setEmployeeNotFound(true);
+            setStep(1); // "not found" step
+          }
+          setEmployeeLoading(false);
+        })
+        .catch(() => {
+          setEmployeeNotFound(true);
+          setEmployeeLoading(false);
+          setStep(1);
+        });
+    }
   }
 
   function handleComplete() {
@@ -100,7 +139,6 @@ export function OnboardingFlow({
   }
 
   const canProceedEmployer = step === 1 && orgName.trim() && personName.trim();
-  const canProceedEmployee = step === 1 && personName.trim();
 
   return (
     <div className="onboarding">
@@ -262,53 +300,111 @@ export function OnboardingFlow({
             </motion.div>
           )}
 
-          {step === 1 && role === "employee" && (
-            <motion.div key="step-1-employee" {...slideIn}>
-              <h2>Tell us about yourself</h2>
+          {step === 1 && role === "employee" && employeeLoading && (
+            <motion.div key="step-1-loading" {...slideIn}>
+              <div
+                className="onboarding__icon"
+                style={{ margin: "0 auto 20px" }}
+              >
+                <Loader2 size={28} className="spin" />
+              </div>
+              <h2>Checking your profile…</h2>
               <p className="onboarding__sub">
-                So your employer knows who's claiming from their payroll
-                streams.
+                Looking up your wallet to see if an employer has added you.
               </p>
-              <div className="onboarding__form">
-                <div className="onboarding__field">
-                  <label>
-                    <User size={14} /> Your name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Jordan Lee"
-                    value={personName}
-                    onChange={(e) => setPersonName(e.target.value)}
-                    autoFocus
-                  />
+            </motion.div>
+          )}
+
+          {step === 1 &&
+            role === "employee" &&
+            !employeeLoading &&
+            fetchedEmployee && (
+              <motion.div key="step-1-found" {...slideIn}>
+                <div className="onboarding__welcome-icon">
+                  <Check size={28} />
                 </div>
-                <div className="onboarding__field">
-                  <label>Job title</label>
-                  <input
-                    type="text"
-                    placeholder="Frontend Engineer"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                  />
+                <h2>Welcome, {fetchedEmployee.personName}!</h2>
+                <p className="onboarding__sub">
+                  Your employer has added you to the payroll system. Confirm
+                  your details to continue.
+                </p>
+                <div className="onboarding__summary">
+                  <div className="onboarding__summary-row">
+                    <span>Name</span>
+                    <strong>{fetchedEmployee.personName}</strong>
+                  </div>
+                  {fetchedEmployee.jobTitle && (
+                    <div className="onboarding__summary-row">
+                      <span>Role</span>
+                      <strong>{fetchedEmployee.jobTitle}</strong>
+                    </div>
+                  )}
+                  <div className="onboarding__summary-row">
+                    <span>Wallet</span>
+                    <strong style={{ fontFamily: "'SF Mono', monospace" }}>
+                      {walletAddress.slice(0, 6)}…{walletAddress.slice(-4)}
+                    </strong>
+                  </div>
                 </div>
                 <div className="onboarding__actions">
                   <button
                     className="onboarding__back"
-                    onClick={() => setStep(0)}
+                    onClick={() => {
+                      setStep(0);
+                      setFetchedEmployee(null);
+                      setEmployeeNotFound(false);
+                    }}
                   >
                     <ArrowLeft size={14} /> Back
                   </button>
                   <button
-                    className="onboarding__next"
-                    onClick={() => setStep(2)}
-                    disabled={!canProceedEmployee}
+                    className="onboarding__next onboarding__next--go"
+                    onClick={handleComplete}
                   >
-                    Continue <ArrowRight size={14} />
+                    Enter Dashboard <ArrowRight size={14} />
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+
+          {step === 1 &&
+            role === "employee" &&
+            !employeeLoading &&
+            employeeNotFound && (
+              <motion.div key="step-1-notfound" {...slideIn}>
+                <div
+                  className="onboarding__icon"
+                  style={{
+                    margin: "0 auto 20px",
+                    background: "var(--red-dim)",
+                    color: "var(--red)",
+                  }}
+                >
+                  <UserX size={28} />
+                </div>
+                <h2>No profile found</h2>
+                <p className="onboarding__sub">
+                  Your employer hasn't added your wallet to their payroll yet.
+                  Share your address with them to get started.
+                </p>
+                <div
+                  className="empty-dashboard__addr"
+                  style={{ maxWidth: 400, margin: "0 auto 24px" }}
+                >
+                  <span>Your wallet address</span>
+                  <code>{walletAddress}</code>
+                </div>
+                <button
+                  className="onboarding__back"
+                  onClick={() => {
+                    setStep(0);
+                    setEmployeeNotFound(false);
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back
+                </button>
+              </motion.div>
+            )}
 
           {/* Step 2: Welcome / confirmation */}
           {step === 2 && (
