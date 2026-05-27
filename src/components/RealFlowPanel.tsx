@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useAccount,
   useReadContract,
@@ -26,46 +26,50 @@ const TROVE = {
 const SECONDS_PER_MONTH = 30 * 24 * 3600;
 const explorerBase = mezoTestnet.blockExplorers.default.url;
 
-const employeeCache: Record<string, { name: string; role?: string } | null> =
-  {};
-
-async function fetchEmployeeInfo(
-  addr: string,
-): Promise<{ name: string; role?: string } | null> {
-  const key = addr.toLowerCase();
-  if (key in employeeCache) return employeeCache[key];
-  try {
-    const res = await fetch(
-      `https://sat-salary-api.gabrielaxy.workers.dev/profile/${key}`,
-    );
-    if (!res.ok) {
-      employeeCache[key] = null;
-      return null;
-    }
-    const data = (await res.json()) as {
-      personName?: string;
-      jobTitle?: string;
+function useEmployeeNames(
+  addresses: string[],
+): Record<string, { name: string; role?: string }> {
+  const [names, setNames] = useState<
+    Record<string, { name: string; role?: string }>
+  >({});
+  const key = addresses.map((a) => a.toLowerCase()).join(",");
+  useEffect(() => {
+    if (!addresses.length) return;
+    let cancelled = false;
+    Promise.all(
+      addresses.map(async (addr) => {
+        const k = addr.toLowerCase();
+        try {
+          const res = await fetch(
+            `https://sat-salary-api.gabrielaxy.workers.dev/profile/${k}`,
+          );
+          if (!res.ok) return null;
+          const data = (await res.json()) as {
+            personName?: string;
+            jobTitle?: string;
+          };
+          if (!data.personName || data.personName === "_cleared") return null;
+          return {
+            addr: k,
+            name: data.personName.trim(),
+            role: data.jobTitle?.trim(),
+          };
+        } catch {
+          return null;
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, { name: string; role?: string }> = {};
+      for (const r of results)
+        if (r) map[r.addr] = { name: r.name, role: r.role };
+      setNames(map);
+    });
+    return () => {
+      cancelled = true;
     };
-    if (!data.personName || data.personName === "_cleared") {
-      employeeCache[key] = null;
-      return null;
-    }
-    const info = { name: data.personName.trim(), role: data.jobTitle?.trim() };
-    employeeCache[key] = info;
-    return info;
-  } catch {
-    employeeCache[key] = null;
-    return null;
-  }
-}
-
-function getEmployeeInfo(
-  address: string,
-): { name: string; role?: string } | null {
-  const key = address.toLowerCase();
-  if (key in employeeCache) return employeeCache[key];
-  fetchEmployeeInfo(address);
-  return null;
+  }, [key]);
+  return names;
 }
 
 function fmtMonthly(ratePerSec: bigint): string {
@@ -195,6 +199,8 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
     }
     return rows;
   }, [streamData, streamCount]);
+
+  const employeeNames = useEmployeeNames(streams.map((s) => s.payee));
 
   // --- Tx plumbing ---
   const { writeContractAsync } = useWriteContract();
@@ -470,9 +476,9 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
                     >
                       <div>
                         <span className="real-flow__payee">
-                          {getEmployeeInfo(s.payee)?.name ||
+                          {employeeNames[s.payee.toLowerCase()]?.name ||
                             `${s.payee.slice(0, 6)}…${s.payee.slice(-4)}`}
-                          {getEmployeeInfo(s.payee)?.role && (
+                          {employeeNames[s.payee.toLowerCase()]?.role && (
                             <em
                               style={{
                                 color: "var(--text-muted)",
@@ -480,7 +486,7 @@ export function RealFlowPanel({ view = "dashboard" }: RealFlowPanelProps) {
                               }}
                             >
                               {" · "}
-                              {getEmployeeInfo(s.payee)!.role}
+                              {employeeNames[s.payee.toLowerCase()]!.role}
                             </em>
                           )}
                           {mine && <em> (you)</em>}
