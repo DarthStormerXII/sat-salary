@@ -127,6 +127,15 @@ export function OpenTroveForm({
       setTxHashes((prev) => ({ ...prev, open: openHash }));
       await publicClient.waitForTransactionReceipt({ hash: openHash });
 
+      // Step 2b: Allocate all borrowed MUSD to payroll reserve
+      const allocHash = await deployerWallet.writeContract({
+        address: SAT_SALARY_TROVE_ADDRESS as `0x${string}`,
+        abi: SAT_SALARY_TROVE_ABI,
+        functionName: "allocateToPayroll",
+        args: [debtWei],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: allocHash });
+
       // Step 3: Deployer transfers employer role to connected wallet
       setTxState("transferring");
       const transferHash = await deployerWallet.writeContract({
